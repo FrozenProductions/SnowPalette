@@ -1,5 +1,5 @@
 import { FC, useState, useEffect, useRef } from 'react'
-import { X, Camera, Loader2 } from 'lucide-react'
+import { X, Camera, Loader2, ChevronUp, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { extractColors } from '../utils/colorExtractor'
 
@@ -149,6 +149,7 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
   const [hsl, setHsl] = useState<HSL>(rgbToHsl(rgb.r, rgb.g, rgb.b))
   const [extractedColors, setExtractedColors] = useState<string[]>([])
   const [isExtracting, setIsExtracting] = useState(false)
+  const [numColors, setNumColors] = useState(6)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -220,7 +221,11 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
 
     setIsExtracting(true)
     try {
-      const colors = await extractColors(file)
+      const colors = await extractColors(file, {
+        targetColors: numColors,
+        minColors: Math.max(1, numColors - 2),
+        maxColors: Math.min(24, numColors + 2)
+      })
       setExtractedColors(colors)
     } catch (err) {
       console.error("Failed to extract colors:", err)
@@ -247,37 +252,40 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
     onClose()
   }
 
+  const handleNumColorsChange = (delta: number) => {
+    setNumColors(prev => Math.min(12, Math.max(1, prev + delta)))
+  }
+
+  const handleNumColorsInput = (value: string) => {
+    const num = parseInt(value)
+    if (value === "") {
+      setNumColors(1)
+    } else if (!isNaN(num)) {
+      setNumColors(Math.min(12, Math.max(1, num)))
+    }
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={onClose}
-          />
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="relative bg-dark-800 rounded-xl border border-dark-700 p-6 w-full max-w-sm shadow-xl"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-dark-800 rounded-xl border border-dark-700 shadow-lg max-w-md w-full overflow-hidden"
           >
-            <div className="flex items-center justify-between mb-6">
-              <div className="space-y-1">
-                <h3 className="text-lg font-medium">Add Color</h3>
-                <p className="text-xs text-gray-400">Press {navigator.platform.includes('Mac') ? '⌘V' : 'Ctrl+V'} to paste a color</p>
-              </div>
+            <div className="p-4 border-b border-dark-700 flex items-center justify-between">
+              <h2 className="text-lg font-medium text-gray-200">Add Color</h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-gray-400 hover:text-gray-300 transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <div className="space-y-6">
+            <div className="p-4 space-y-4">
               <div className="w-full h-24 rounded-lg border-2 border-dark-600 overflow-hidden">
                 <div className="w-full h-full" style={{ backgroundColor: hex }} />
               </div>
@@ -334,31 +342,60 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
               </div>
 
               <div className="flex flex-col gap-4">
-                <div className="relative">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageUpload}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isExtracting}
-                    className="w-full px-4 py-2 bg-dark-700/50 text-sm text-gray-300 rounded-lg border border-dark-600 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isExtracting ? (
-                      <>
-                        <Loader2 size={16} className="animate-spin" />
-                        Extracting Colors...
-                      </>
-                    ) : (
-                      <>
-                        <Camera size={16} />
-                        Extract Colors from Image
-                      </>
-                    )}
-                  </button>
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isExtracting}
+                      className="w-full h-9 px-3 bg-dark-700/50 text-sm text-gray-300 rounded-lg border border-dark-600 hover:border-primary/50 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isExtracting ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" />
+                          <span>Extracting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Camera size={14} />
+                          <span>Extract from Image</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <div className="flex items-center h-9 bg-dark-700/50 rounded-lg border border-dark-600">
+                    <span className="text-xs text-gray-400 px-2">Colors:</span>
+                    <div className="flex items-center h-full border-l border-dark-600">
+                      <button
+                        onClick={() => handleNumColorsChange(-1)}
+                        disabled={numColors <= 1}
+                        className="h-full px-1 text-gray-400 hover:text-gray-300 hover:bg-dark-700/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronDown size={14} />
+                      </button>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={numColors}
+                        onChange={(e) => handleNumColorsInput(e.target.value)}
+                        className="w-8 bg-transparent text-sm text-gray-300 text-center focus:outline-none font-mono"
+                      />
+                      <button
+                        onClick={() => handleNumColorsChange(1)}
+                        disabled={numColors >= 12}
+                        className="h-full px-1 text-gray-400 hover:text-gray-300 hover:bg-dark-700/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronUp size={14} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 {extractedColors.length > 0 && (
