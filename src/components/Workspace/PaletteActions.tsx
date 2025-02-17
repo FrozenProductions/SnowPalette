@@ -2,7 +2,7 @@ import { FC, ChangeEvent } from 'react'
 import { Plus, Folder, Download, Upload } from 'lucide-react'
 import ActionButton from './ActionButton'
 
-interface PaletteActionsProps {
+type PaletteActionsProps = {
   onAddColor: () => void
   onNewFolder: () => void
   onExportFolders: () => void
@@ -16,25 +16,30 @@ const PaletteActions: FC<PaletteActionsProps> = ({
   onImportFolders,
 }) => {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5 sm:gap-2">
       <ActionButton
         onClick={onAddColor}
         icon={<Plus size={14} />}
         label="Add Color"
         tooltip="Add a new color (Alt + C)"
+        className="sm:min-w-[100px]"
+        showLabelOnMobile={false}
       />
       <ActionButton
         onClick={onNewFolder}
         icon={<Folder size={14} />}
         label="New Folder"
         tooltip="Create a new folder"
+        className="sm:min-w-[100px]"
+        showLabelOnMobile={false}
       />
-      <div className="h-6 w-px bg-dark-600" />
+      <div className="hidden sm:block h-6 w-px bg-dark-600" />
       <ActionButton
         onClick={onExportFolders}
         icon={<Download size={14} />}
         label=""
         tooltip="Export folders and colors as JSON"
+        className="min-w-0"
       />
       <label className="cursor-pointer">
         <input
@@ -47,6 +52,7 @@ const PaletteActions: FC<PaletteActionsProps> = ({
           icon={<Upload size={14} />}
           label=""
           tooltip="Import folders from JSON"
+          className="min-w-0"
         />
       </label>
     </div>
