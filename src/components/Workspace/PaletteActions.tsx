@@ -1,12 +1,18 @@
-import { FC, ChangeEvent } from 'react'
+import { FC, ChangeEvent, useRef } from 'react'
 import { Plus, Folder, Download, Upload } from 'lucide-react'
 import ActionButton from './ActionButton'
+import { ColorItem, Folder as FolderType } from '../../types/colors'
 
 type PaletteActionsProps = {
   onAddColor: () => void
   onNewFolder: () => void
   onExportFolders: () => void
   onImportFolders: (event: ChangeEvent<HTMLInputElement>) => void
+  onShare: () => void
+  paletteName: string
+  colors: ColorItem[]
+  folders: FolderType[]
+  selectedFolderId: string | null
 }
 
 const PaletteActions: FC<PaletteActionsProps> = ({
@@ -15,6 +21,12 @@ const PaletteActions: FC<PaletteActionsProps> = ({
   onExportFolders,
   onImportFolders,
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
   return (
     <div className="flex items-center gap-1.5 sm:gap-2">
       <ActionButton
@@ -39,20 +51,20 @@ const PaletteActions: FC<PaletteActionsProps> = ({
         tooltip="Export folders and colors as JSON"
         className="min-w-0"
       />
-      <label className="cursor-pointer">
-        <input
-          type="file"
-          accept=".json"
-          onChange={onImportFolders}
-          className="hidden"
-        />
-        <ActionButton
-          icon={<Upload size={14} />}
-          label=""
-          tooltip="Import folders from JSON"
-          className="min-w-0"
-        />
-      </label>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        onChange={onImportFolders}
+        className="hidden"
+      />
+      <ActionButton
+        onClick={handleImportClick}
+        icon={<Upload size={14} />}
+        label=""
+        tooltip="Import folders from JSON"
+        className="min-w-0"
+      />
     </div>
   )
 }

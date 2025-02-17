@@ -1,4 +1,4 @@
-import { ColorItem } from './colors'
+import { ColorItem, Folder } from './colors'
 
 export interface ShareHeaderProps {
   onClose: () => void
@@ -10,6 +10,7 @@ export interface ShareActionsProps {
   onCapture: () => void
   onShare: () => void
   onDownload: () => void
+  onShareLink: () => void
 }
 
 export interface ShareColorGridProps {
@@ -21,4 +22,11 @@ export interface ShareInfoProps {
   paletteName: string | undefined
   folderName: string | undefined
   colorsCount: number
-} 
+}
+
+export type ShareData = {
+    name: string
+    folderName: string | null
+    colors: ColorItem[]
+    folder: Folder | null
+  }

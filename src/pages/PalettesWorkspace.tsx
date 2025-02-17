@@ -356,6 +356,11 @@ const PalettesWorkspace: FC = () => {
                     onNewFolder={handleNewFolder}
                     onExportFolders={handleExportFolders}
                     onImportFolders={handleImportFolders}
+                    onShare={() => showNotification("Share link copied to clipboard")}
+                    paletteName={currentPalette.name}
+                    colors={currentPalette.colors}
+                    folders={currentPalette.folders}
+                    selectedFolderId={selectedFolderId}
                   />
                 </div>
 

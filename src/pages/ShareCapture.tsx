@@ -4,7 +4,9 @@ import { ColorItem, Folder, Palette } from '../types/colors'
 import { ShareHeader, ShareActions, ShareColorGrid, ShareInfo } from '../components/Share'
 import { COLORS_PER_ROW } from '../constants/share'
 import { STORAGE_KEY } from '../constants/storage'
+import { encodeShareData } from '../utils/share'
 import html2canvas from 'html2canvas'
+import Toast from '../components/Toast'
 
 const ShareCapture: FC = () => {
   const navigate = useNavigate()
@@ -15,6 +17,8 @@ const ShareCapture: FC = () => {
   const [colors, setColors] = useState<ColorItem[]>([])
   const [folder, setFolder] = useState<Folder | null>(null)
   const [palette, setPalette] = useState<Palette | null>(null)
+  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState("")
 
   useEffect(() => {
     const savedData = localStorage.getItem(STORAGE_KEY)
@@ -37,6 +41,11 @@ const ShareCapture: FC = () => {
       }
     }
   }, [paletteId, folderId])
+
+  const showNotification = (message: string) => {
+    setToastMessage(message)
+    setShowToast(true)
+  }
 
   const handleCapture = async () => {
     if (!containerRef.current) return
@@ -90,6 +99,32 @@ const ShareCapture: FC = () => {
     }
   }
 
+  const handleShareLink = () => {
+    if (!palette) return
+
+    const shareData = encodeShareData({
+      name: palette.name,
+      folderName: folder?.name || 'Unorganized',
+      colors: colors,
+      folder: folder
+    })
+    const shareUrl = `${window.location.origin}/share/palette/${shareData}`
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => showNotification('Share link copied to clipboard'))
+        .catch(() => {
+          const input = document.createElement('input')
+          input.value = shareUrl
+          document.body.appendChild(input)
+          input.select()
+          document.execCommand('copy')
+          document.body.removeChild(input)
+          showNotification('Share link copied to clipboard')
+        })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-dark-900 text-white">
       <ShareHeader onClose={() => navigate('/workspace')} />
@@ -109,6 +144,7 @@ const ShareCapture: FC = () => {
               onCapture={handleCapture}
               onShare={handleShare}
               onDownload={handleDownload}
+              onShareLink={handleShareLink}
             />
           </div>
 
@@ -135,6 +171,12 @@ const ShareCapture: FC = () => {
           </div>
         </div>
       </main>
+
+      <Toast
+        message={toastMessage}
+        isVisible={showToast}
+        onHide={() => setShowToast(false)}
+      />
     </div>
   )
 }
