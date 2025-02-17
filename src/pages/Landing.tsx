@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { GITHUB_URL } from "../constants/landing"
 
 export const Landing = (): JSX.Element => {
@@ -48,14 +48,14 @@ export const Landing = (): JSX.Element => {
               >
                 Get Started
               </button>
-              <a 
-                href="https://github.com/FrozenProductions/SnowPalette/blob/main/DOCUMENTATION.md"
+              <Link 
+                to="/docs"
                 className="px-6 py-2.5 bg-primary hover:bg-primary-600 text-white rounded-lg font-medium transition-all shadow-md shadow-primary/10 hover:shadow-primary/20 focus:ring-2 focus:ring-primary-300 focus:outline-none text-sm group min-w-[120px]"
                 aria-label="View documentation"
               >
                 Documentation
                 <span className="inline-block ml-1 transition-transform group-hover:translate-x-0.5">→</span>
-              </a>
+              </Link>
             </div>
 
             <div className="w-full max-w-[280px] flex items-center gap-3 opacity-80">
