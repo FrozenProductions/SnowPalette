@@ -225,10 +225,6 @@ const checkSpecialColor = (hue: number, saturation: number, lightness: number) =
 }
 
 export const generateColorName = (colorValue: ColorValue): string => {
-  if (typeof colorValue === "object") {
-    return "Gradient"
-  }
-
   const [hue, saturation, lightness] = hexToHsl(colorValue)
 
   const specialColor = checkSpecialColor(hue, saturation, lightness)

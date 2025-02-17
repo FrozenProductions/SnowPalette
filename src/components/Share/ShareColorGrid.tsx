@@ -24,19 +24,14 @@ const ShareColorGrid: FC<ShareColorGridProps> = ({ colors, colorsPerRow }) => {
               <div className="aspect-square w-full rounded-xl ring-1 ring-white/5 relative overflow-hidden">
                 <div
                   className="absolute inset-0"
-                  style={{ 
-                    backgroundColor: typeof color.value === 'string' ? color.value : 'transparent',
-                    backgroundImage: typeof color.value === 'object' 
-                      ? `linear-gradient(${color.value.angle}deg, ${color.value.colors.join(', ')})` 
-                      : 'none'
-                  }}
+                  style={{ backgroundColor: color.value }}
                 />
                 <div className="absolute inset-x-0 bottom-0 p-3">
                   <div className="text-xs font-medium text-white text-center">
                     {color.name}
                   </div>
                   <div className="text-[10px] font-mono text-white text-center mt-1">
-                    {typeof color.value === 'string' ? color.value.toUpperCase() : 'Gradient'}
+                    {color.value.toUpperCase()}
                   </div>
                 </div>
               </div>

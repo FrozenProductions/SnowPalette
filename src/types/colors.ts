@@ -1,12 +1,6 @@
-export type ColorCategory = 'background' | 'text' | 'border' | 'accent' | 'other'
+export type ColorCategory = "background" | "text" | "border" | "accent" | "other"
 
-export type GradientValue = {
-  type: 'gradient'
-  colors: string[]
-  angle: number
-}
-
-export type ColorValue = string | GradientValue
+export type ColorValue = string
 
 export interface ColorItem {
   id: string
@@ -26,4 +20,22 @@ export interface Palette {
   name: string
   colors: ColorItem[]
   folders: Folder[]
+}
+
+export type CategoryManagerProps = {
+  selectedColors: string[]
+  onCategoryChange: (colorIds: string[], category: ColorCategory) => void
+  onClose: () => void
+  colors: ColorItem[]
+}
+
+export type ColorCardProps = {
+  color: ColorItem
+  onDelete: () => void
+  onRename: (newName: string) => void
+  onDragStart: () => void
+  onDragEnd: () => void
+  isReordering: boolean
+  isSelected: boolean
+  onSelect: () => void
 } 

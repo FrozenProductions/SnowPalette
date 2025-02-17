@@ -1,5 +1,5 @@
 import { FC, useState, useEffect, useRef } from 'react'
-import { Folder, Filter } from 'lucide-react'
+import { Folder, Filter, Tag } from 'lucide-react'
 import { motion, AnimatePresence, Reorder } from 'framer-motion'
 import { ColorItem, ColorCategory, Folder as FolderType } from '../../types/colors'
 import { CATEGORIES } from '../../constants/categories'
@@ -7,6 +7,7 @@ import { filterColorsByFolder, filterColorsByCategory, reorderColors } from '../
 import ColorCard from './ColorCard'
 import ContextMenu from './ContextMenu'
 import Toast from '../Toast'
+import CategoryManager from "./CategoryManager"
 
 interface FolderViewProps {
   colors: ColorItem[]
@@ -42,6 +43,9 @@ const FolderView: FC<FolderViewProps> = ({
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const categoryDropdownRef = useRef<HTMLDivElement>(null)
+  const [selectedColors, setSelectedColors] = useState<string[]>([])
+  const [showCategoryManager, setShowCategoryManager] = useState(false)
+  const categoryManagerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleResize = () => {
@@ -57,10 +61,13 @@ const FolderView: FC<FolderViewProps> = ({
       if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
         setIsCategoryFilterOpen(false)
       }
+      if (categoryManagerRef.current && !categoryManagerRef.current.contains(event.target as Node)) {
+        setShowCategoryManager(false)
+      }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
   useEffect(() => {
@@ -130,6 +137,24 @@ const FolderView: FC<FolderViewProps> = ({
     )
     onUpdateColors(newColors)
     setIsReordering(false)
+  }
+
+  const handleColorSelect = (colorId: string) => {
+    setSelectedColors(prev => {
+      if (prev.includes(colorId)) {
+        return prev.filter(id => id !== colorId)
+      }
+      return [...prev, colorId]
+    })
+  }
+
+  const handleCategoryChange = (colorIds: string[], category: ColorCategory) => {
+    const newColors = colors.map(color => 
+      colorIds.includes(color.id) ? { ...color, category } : color
+    )
+    onUpdateColors(newColors)
+    setSelectedColors([])
+    setShowCategoryManager(false)
   }
 
   return (
@@ -278,75 +303,96 @@ const FolderView: FC<FolderViewProps> = ({
                   {categoryFilter === null ? "All Categories" : categoryFilter}
                 </span>
               </button>
+
               <AnimatePresence>
                 {isCategoryFilterOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: -10 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ type: "spring", duration: 0.2 }}
-                    className="absolute mt-1 w-48 bg-dark-800/95 backdrop-blur-sm border border-dark-700 rounded-xl shadow-2xl overflow-hidden z-[100]"
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full mt-1 right-0 bg-dark-800 rounded-xl border border-dark-700 shadow-lg p-2 min-w-[180px] z-10"
                   >
-                    <div className="p-1">
-                      <motion.button
-                        whileHover={{ backgroundColor: categoryFilter === null ? "rgba(59, 130, 246, 0.2)" : "rgba(17, 24, 39, 0.5)" }}
+                    <button
+                      onClick={() => {
+                        setCategoryFilter(null)
+                        setIsCategoryFilterOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-colors ${
+                        categoryFilter === null
+                          ? "bg-primary/10 text-primary-300"
+                          : "text-gray-400 hover:text-white hover:bg-dark-700/50"
+                      }`}
+                    >
+                      <Filter size={14} className="shrink-0" />
+                      <span className="text-sm">All Categories</span>
+                    </button>
+                    {CATEGORIES.map((category) => (
+                      <button
+                        key={category}
                         onClick={() => {
-                          setCategoryFilter(null)
+                          setCategoryFilter(category)
                           setIsCategoryFilterOpen(false)
                         }}
                         className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-colors ${
-                          categoryFilter === null
+                          categoryFilter === category
                             ? "bg-primary/10 text-primary-300"
-                            : "text-gray-400 hover:text-white"
+                            : "text-gray-400 hover:text-white hover:bg-dark-700/50"
                         }`}
                       >
                         <Filter size={14} className="shrink-0" />
-                        <span className="text-sm">All Categories</span>
-                      </motion.button>
-                      {CATEGORIES.map((category) => (
-                        <motion.button
-                          key={category}
-                          whileHover={{ backgroundColor: categoryFilter === category ? "rgba(59, 130, 246, 0.2)" : "rgba(17, 24, 39, 0.5)" }}
-                          onClick={() => {
-                            setCategoryFilter(category)
-                            setIsCategoryFilterOpen(false)
-                          }}
-                          className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-colors ${
-                            categoryFilter === category
-                              ? "bg-primary/10 text-primary-300"
-                              : "text-gray-400 hover:text-white"
-                          }`}
-                        >
-                          <Filter size={14} className="shrink-0" />
-                          <span className="text-sm capitalize">{category}</span>
-                        </motion.button>
-                      ))}
-                    </div>
+                        <span className="text-sm capitalize">{category}</span>
+                      </button>
+                    ))}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
           </div>
-          <div className="text-sm text-gray-400">{finalFilteredColors.length} colors</div>
+          <div className="flex items-center gap-2">
+            {selectedColors.length > 0 && (
+              <div className="relative" ref={categoryManagerRef}>
+                <button
+                  onClick={() => setShowCategoryManager(prev => !prev)}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-primary/20 bg-primary/10 text-primary-300 hover:bg-primary/20 transition-colors"
+                >
+                  <Tag size={14} />
+                  <span className="text-sm">Set Category ({selectedColors.length})</span>
+                </button>
+
+                <AnimatePresence>
+                  {showCategoryManager && (
+                    <CategoryManager
+                      selectedColors={selectedColors}
+                      onCategoryChange={handleCategoryChange}
+                      onClose={() => setShowCategoryManager(false)}
+                      colors={colors}
+                    />
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+            <div className="text-sm text-gray-400">{finalFilteredColors.length} colors</div>
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto min-h-0">
-          <Reorder.Group 
-            axis="y" 
-            values={finalFilteredColors} 
+        <div className="relative flex-1 min-h-0 overflow-y-auto">
+          <Reorder.Group
+            axis="y"
+            values={finalFilteredColors}
             onReorder={handleReorder}
-            className="space-y-1.5"
-            layoutScroll
+            className="space-y-2"
           >
             {finalFilteredColors.map((color) => (
-              <ColorCard 
-                key={color.id} 
-                color={color} 
+              <ColorCard
+                key={color.id}
+                color={color}
                 onDelete={() => onDeleteColor(color.id)}
                 onRename={(newName) => handleRenameColor(color.id, newName)}
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
                 isReordering={isReordering}
+                isSelected={selectedColors.includes(color.id)}
+                onSelect={() => handleColorSelect(color.id)}
               />
             ))}
           </Reorder.Group>

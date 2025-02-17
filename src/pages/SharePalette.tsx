@@ -122,19 +122,14 @@ const SharePalette: FC = () => {
                   >
                     <div
                       className="w-full h-full"
-                      style={{ 
-                        backgroundColor: typeof color.value === "string" ? color.value : "transparent",
-                        backgroundImage: typeof color.value === "object" 
-                          ? `linear-gradient(${color.value.angle}deg, ${color.value.colors.join(", ")})` 
-                          : "none"
-                      }}
+                      style={{ backgroundColor: color.value }}
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center">
                       <span className="text-xs font-medium text-white truncate w-full">
                         {color.name}
                       </span>
                       <span className="text-[10px] font-mono text-white/80 truncate w-full">
-                        {typeof color.value === "string" ? color.value.toUpperCase() : "Gradient"}
+                        {color.value.toUpperCase()}
                       </span>
                     </div>
                   </div>

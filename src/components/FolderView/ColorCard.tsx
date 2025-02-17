@@ -1,47 +1,22 @@
 import { FC, useState } from 'react'
-import { X, Pencil, GripVertical } from 'lucide-react'
+import { X, Pencil, GripVertical, Tag } from 'lucide-react'
 import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion'
-import { ColorItem, ColorCategory, GradientValue } from '../../types/colors'
-import { CATEGORIES } from '../../constants/categories'
+import { ColorCardProps } from '../../types/colors'
 
-interface ColorCardProps {
-  color: ColorItem
-  onDelete: () => void
-  onRename: (newName: string) => void
-  onDragStart: () => void
-  onDragEnd: () => void
-  isReordering: boolean
-}
-
-const ColorCard: FC<ColorCardProps> = ({ color, onDelete, onRename, onDragStart, onDragEnd, isReordering }) => {
-  const [isEditing, setIsEditing] = useState(false)
+const ColorCard: FC<ColorCardProps> = ({
+  color,
+  onDelete,
+  onRename,
+  onDragStart,
+  onDragEnd,
+  isReordering,
+  isSelected,
+  onSelect
+}) => {
   const [isRenamingColor, setIsRenamingColor] = useState(false)
   const [colorName, setColorName] = useState(color.name)
   const [isHovered, setIsHovered] = useState(false)
   const dragControls = useDragControls()
-
-  const isGradient = typeof color.value === 'object' && 'type' in color.value && color.value.type === 'gradient'
-  const colorStyle = isGradient
-    ? {
-        backgroundImage: `linear-gradient(${(color.value as GradientValue).angle}deg, ${(color.value as GradientValue).colors.join(', ')})`,
-      }
-    : { backgroundColor: color.value as string }
-
-  const getDisplayValue = () => {
-    if (isGradient) {
-      const gradient = color.value as GradientValue
-      return `${gradient.colors.join(', ')} ${gradient.angle}°`
-    }
-    return color.value as string
-  }
-
-  const getCopyValue = () => {
-    if (isGradient) {
-      const gradient = color.value as GradientValue
-      return `linear-gradient(${gradient.angle}deg, ${gradient.colors.join(', ')})`
-    }
-    return color.value as string
-  }
 
   const handleRename = () => {
     if (colorName.trim() !== '') {
@@ -52,7 +27,7 @@ const ColorCard: FC<ColorCardProps> = ({ color, onDelete, onRename, onDragStart,
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(getCopyValue())
+      await navigator.clipboard.writeText(color.value)
       const event = new CustomEvent('showToast', {
         detail: { message: 'Color copied to clipboard' }
       })
@@ -79,9 +54,14 @@ const ColorCard: FC<ColorCardProps> = ({ color, onDelete, onRename, onDragStart,
       }}
     >
       <motion.div 
-        className="flex items-center gap-2 p-2 bg-dark-800/50 rounded-xl border border-dark-700"
+        className={`flex items-center gap-2 p-2 bg-dark-800/50 rounded-xl border transition-colors ${
+          isSelected 
+            ? "border-primary-400 bg-primary/5" 
+            : "border-dark-700 hover:border-dark-600"
+        }`}
         onHoverStart={() => !isReordering && setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
+        onClick={() => !isReordering && onSelect()}
       >
         <div className="flex items-center gap-2 flex-1">
           <motion.div 
@@ -92,11 +72,11 @@ const ColorCard: FC<ColorCardProps> = ({ color, onDelete, onRename, onDragStart,
               dragControls.start(e)
             }}
           >
-            <GripVertical size={16} />
+            <GripVertical size={14} />
           </motion.div>
           <div 
             className="w-8 h-8 rounded-lg ring-1 ring-dark-800 relative cursor-move"
-            style={colorStyle}
+            style={{ backgroundColor: color.value }}
             draggable
             onDragStart={(e) => {
               e.stopPropagation()
@@ -138,45 +118,10 @@ const ColorCard: FC<ColorCardProps> = ({ color, onDelete, onRename, onDragStart,
               )}
             </div>
             <div className="flex items-center gap-2">
-              <motion.div 
-                onClick={() => !isReordering && setIsEditing(true)}
-                className="text-xs text-gray-400 cursor-pointer flex items-center gap-1 truncate"
-                whileHover={{ color: !isReordering ? 'rgb(147, 197, 253)' : 'rgb(156, 163, 175)' }}
-              >
-                <AnimatePresence mode="wait">
-                  {isEditing ? (
-                    <motion.select
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      value={color.category}
-                      onChange={(e) => {
-                        const newCategory = e.target.value as ColorCategory
-                        const event = new CustomEvent('updateCategory', {
-                          detail: { colorId: color.id, category: newCategory }
-                        })
-                        window.dispatchEvent(event)
-                        setIsEditing(false)
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="py-0.5 px-1 text-xs bg-dark-700 rounded-lg border border-dark-600 text-gray-300 focus:outline-none focus:border-primary/50 select-text"
-                      autoFocus
-                      onBlur={() => setIsEditing(false)}
-                    >
-                      {CATEGORIES.map(category => (
-                        <option key={category} value={category}>{category}</option>
-                      ))}
-                    </motion.select>
-                  ) : (
-                    <motion.span
-                      initial={false}
-                      animate={{ textDecoration: isHovered && !isReordering ? 'underline' : 'none' }}
-                    >
-                      {color.category}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.div>
+              <div className="text-xs text-gray-400 flex items-center gap-1">
+                <Tag size={12} />
+                <span className="capitalize">{color.category}</span>
+              </div>
               <AnimatePresence>
                 <motion.div 
                   className="flex items-center gap-2"
@@ -186,10 +131,13 @@ const ColorCard: FC<ColorCardProps> = ({ color, onDelete, onRename, onDragStart,
                 >
                   <div className="w-px h-3 bg-dark-600" />
                   <div 
-                    onClick={handleCopy}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleCopy()
+                    }}
                     className="text-xs text-gray-500 font-mono truncate cursor-pointer hover:text-primary-300 transition-colors"
                   >
-                    {getDisplayValue()}
+                    {color.value}
                   </div>
                 </motion.div>
               </AnimatePresence>
@@ -204,7 +152,8 @@ const ColorCard: FC<ColorCardProps> = ({ color, onDelete, onRename, onDragStart,
         >
           <motion.button
             whileHover={{ scale: 1.1, backgroundColor: "rgba(59, 130, 246, 0.2)" }}
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation()
               setIsRenamingColor(true)
               setColorName(color.name)
             }}
@@ -214,7 +163,10 @@ const ColorCard: FC<ColorCardProps> = ({ color, onDelete, onRename, onDragStart,
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.1, backgroundColor: "rgba(239, 68, 68, 0.2)" }}
-            onClick={onDelete}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
             className="w-6 h-6 rounded-lg hover:text-red-400 text-gray-400 flex items-center justify-center"
           >
             <X size={14} />
