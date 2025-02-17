@@ -1,5 +1,6 @@
 import { FC, ChangeEvent } from 'react'
 import { Plus, Folder, Download, Upload } from 'lucide-react'
+import ActionButton from './ActionButton'
 
 interface PaletteActionsProps {
   onAddColor: () => void
@@ -16,28 +17,25 @@ const PaletteActions: FC<PaletteActionsProps> = ({
 }) => {
   return (
     <div className="flex items-center gap-2">
-      <button
+      <ActionButton
         onClick={onAddColor}
-        className="h-8 px-3 bg-dark-700/50 text-sm text-gray-300 rounded-lg border border-dark-600 hover:border-primary/50 transition-colors flex items-center gap-1.5"
-      >
-        <Plus size={14} />
-        Add Color
-      </button>
-      <button
+        icon={<Plus size={14} />}
+        label="Add Color"
+        tooltip="Add a new color (Alt + C)"
+      />
+      <ActionButton
         onClick={onNewFolder}
-        className="h-8 px-3 bg-dark-700/50 text-sm text-gray-300 rounded-lg border border-dark-600 hover:border-primary/50 transition-colors flex items-center gap-1.5"
-      >
-        <Folder size={14} />
-        New Folder
-      </button>
+        icon={<Folder size={14} />}
+        label="New Folder"
+        tooltip="Create a new folder"
+      />
       <div className="h-6 w-px bg-dark-600" />
-      <button
+      <ActionButton
         onClick={onExportFolders}
-        className="h-8 px-3 bg-dark-700/50 text-sm text-gray-300 rounded-lg border border-dark-600 hover:border-primary/50 transition-colors flex items-center gap-1.5"
-        title="Export folders"
-      >
-        <Download size={14} />
-      </button>
+        icon={<Download size={14} />}
+        label=""
+        tooltip="Export folders and colors as JSON"
+      />
       <label className="cursor-pointer">
         <input
           type="file"
@@ -45,12 +43,11 @@ const PaletteActions: FC<PaletteActionsProps> = ({
           onChange={onImportFolders}
           className="hidden"
         />
-        <div
-          className="h-8 px-3 bg-dark-700/50 text-sm text-gray-300 rounded-lg border border-dark-600 hover:border-primary/50 transition-colors flex items-center gap-1.5"
-          title="Import folders"
-        >
-          <Upload size={14} />
-        </div>
+        <ActionButton
+          icon={<Upload size={14} />}
+          label=""
+          tooltip="Import folders from JSON"
+        />
       </label>
     </div>
   )
