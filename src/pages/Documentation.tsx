@@ -25,7 +25,7 @@ const sections: DocSection[] = [
     items: [
       {
         title: "Palette Actions",
-        description: "Alt + N: New palette, Alt + R: Rename palette, Alt + B: Toggle sidebar, Alt + E: Export folders"
+        description: "Alt + N: New palette, Alt + R: Rename palette, Alt + B: Toggle sidebar, Alt + E: Export folders, Alt + S: Share current folder"
       },
       {
         title: "Color Actions",

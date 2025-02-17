@@ -31,6 +31,8 @@ HSL: hsl(14, 100%, 60%)
 - Alt + R: Rename palette
 - Alt + B: Show/hide sidebar
 - Alt + E: Export folders
+- Alt + S: Share folder
+- Alt + C: Add color
 
 ### Color Actions
 - Copy: Click color value

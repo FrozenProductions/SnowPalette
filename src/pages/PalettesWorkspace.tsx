@@ -8,15 +8,18 @@ import { ColorItem, Folder as FolderType, Palette as PaletteType, ColorCategory 
 import { Header, PaletteList, PaletteActions, PaletteNameEditor } from '../components/Workspace'
 import { generateColorName } from '../utils/colorNaming'
 import { useShortcuts } from '../hooks/useShortcuts'
+import { useNavigate } from 'react-router-dom'
 
 const STORAGE_KEY = 'snowpalette-workspace'
 const SELECTED_PALETTE_KEY = 'snowpalette-selected'
+const SELECTED_FOLDER_KEY = 'snowpalette-selected-folder'
 
 const PalettesWorkspace: FC = () => {
   const [showSidebar, setShowSidebar] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const sidebarRef = useRef<HTMLDivElement>(null)
+  const selectedFolderIdRef = useRef<string | null>(null)
   const [palettes, setPalettes] = useState<PaletteType[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
     if (saved) {
@@ -29,24 +32,47 @@ const PalettesWorkspace: FC = () => {
     }
     return []
   })
-  const [currentPalette, setCurrentPalette] = useState<PaletteType | null>(null)
+  const [currentPalette, setCurrentPalette] = useState<PaletteType | null>(() => {
+    const savedPaletteId = localStorage.getItem(SELECTED_PALETTE_KEY)
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved && savedPaletteId) {
+      try {
+        const parsed = JSON.parse(saved)
+        const palettes = Array.isArray(parsed) ? parsed : []
+        return palettes.find(p => p.id === savedPaletteId) || palettes[palettes.length - 1] || null
+      } catch {
+        return null
+      }
+    }
+    return null
+  })
   const [editingPaletteName, setEditingPaletteName] = useState(false)
-  const [paletteName, setPaletteName] = useState('')
+  const [paletteName, setPaletteName] = useState(() => currentPalette?.name || "")
   const [showColorInput, setShowColorInput] = useState(false)
-  const newColor = "#000000";
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
+  const newColor = "#000000"
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(() => {
+    const savedFolderId = localStorage.getItem(SELECTED_FOLDER_KEY)
+    if (savedFolderId && currentPalette?.folders.some(f => f.id === savedFolderId)) {
+      return savedFolderId
+    }
+    return null
+  })
+  const navigate = useNavigate()
 
   useEffect(() => {
-    const savedPaletteId = localStorage.getItem(SELECTED_PALETTE_KEY)
-    if (palettes.length > 0) {
+    if (palettes.length > 0 && !currentPalette) {
+      const savedPaletteId = localStorage.getItem(SELECTED_PALETTE_KEY)
       const paletteToSelect = savedPaletteId 
         ? palettes.find(p => p.id === savedPaletteId) || palettes[palettes.length - 1]
         : palettes[palettes.length - 1]
       
       setCurrentPalette(paletteToSelect)
       setPaletteName(paletteToSelect.name)
+    } else if (palettes.length === 0) {
+      setCurrentPalette(null)
+      setPaletteName("")
     }
-  }, [])
+  }, [palettes, currentPalette])
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(palettes))
@@ -56,8 +82,20 @@ const PalettesWorkspace: FC = () => {
     if (currentPalette) {
       localStorage.setItem(SELECTED_PALETTE_KEY, currentPalette.id)
       setPaletteName(currentPalette.name)
+
+      if (selectedFolderId && !currentPalette.folders.some(f => f.id === selectedFolderId)) {
+        setSelectedFolderId(null)
+      }
     }
-  }, [currentPalette])
+  }, [currentPalette, selectedFolderId])
+
+  useEffect(() => {
+    if (selectedFolderId) {
+      localStorage.setItem(SELECTED_FOLDER_KEY, selectedFolderId)
+    } else {
+      localStorage.removeItem(SELECTED_FOLDER_KEY)
+    }
+  }, [selectedFolderId])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -284,6 +322,36 @@ const PalettesWorkspace: FC = () => {
     }
   }
 
+  const handleShareCurrentFolder = () => {
+    if (!currentPalette) {
+      showNotification("Please select a palette first")
+      return
+    }
+
+    const currentSelectedFolderId = selectedFolderIdRef.current
+    if (!currentSelectedFolderId) {
+      showNotification("Please select a folder to share")
+      return
+    }
+
+    const folder = currentPalette.folders.find(f => f.id === currentSelectedFolderId)
+    if (!folder) {
+      showNotification("Please select a folder to share")
+      return
+    }
+
+    navigate(`/share/${currentPalette.id}/${currentSelectedFolderId}`)
+  }
+
+  const handleFolderSelect = (folderId: string | null) => {
+    selectedFolderIdRef.current = folderId
+    setSelectedFolderId(folderId)
+  }
+
+  useEffect(() => {
+    selectedFolderIdRef.current = selectedFolderId
+  }, [selectedFolderId, currentPalette])
+
   const shortcuts = useShortcuts({
     "new-palette": {
       key: "n",
@@ -318,6 +386,12 @@ const PalettesWorkspace: FC = () => {
       action: () => {
         setEditingPaletteName(true)
       }
+    },
+    "share-folder": {
+      key: "s",
+      altKey: true,
+      description: "Share current folder",
+      action: handleShareCurrentFolder
     }
   })
 
@@ -364,7 +438,7 @@ const PalettesWorkspace: FC = () => {
                     onNewFolder={handleNewFolder}
                     onExportFolders={handleExportFolders}
                     onImportFolders={handleImportFolders}
-                    onShare={() => showNotification("Share link copied to clipboard")}
+                    onShare={handleShareCurrentFolder}
                     paletteName={currentPalette.name}
                     colors={currentPalette.colors}
                     folders={currentPalette.folders}
@@ -381,7 +455,7 @@ const PalettesWorkspace: FC = () => {
                     onDeleteFolder={handleDeleteFolder}
                     onDeleteColor={handleDeleteColor}
                     onUpdateColors={handleUpdateColors}
-                    onFolderSelect={setSelectedFolderId}
+                    onFolderSelect={handleFolderSelect}
                     selectedFolderId={selectedFolderId}
                     onReorderFolders={handleReorderFolders}
                   />

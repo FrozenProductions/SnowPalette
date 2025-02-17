@@ -46,3 +46,4 @@ A personal tool I built to organize and manage color palettes across my projects
 - Alt + B: Toggle sidebar
 - Alt + E: Export folders
 - Alt + R: Rename palette
+- Alt + S: Share current folder
