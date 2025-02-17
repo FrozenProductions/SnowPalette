@@ -16,12 +16,9 @@ const ShareInfo: FC<ShareInfoProps> = ({ paletteName, folderName, colorsCount })
           </div>
         </div>
         <div className="flex flex-col">
-          <h4 className="text-lg font-medium text-gray-200">{paletteName}</h4>
-          <span className="text-sm text-gray-400">{folderName || 'Unorganized Colors'}</span>
+          <h4 className="text-lg font-medium text-gray-200">{folderName || "Unorganized Colors"}</h4>
+          <span className="text-sm text-gray-400">From {paletteName} • {colorsCount} colors</span>
         </div>
-      </div>
-      <div className="text-sm text-gray-400 font-medium">
-        {colorsCount} colors
       </div>
     </div>
   )

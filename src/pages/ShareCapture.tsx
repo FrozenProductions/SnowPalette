@@ -104,7 +104,7 @@ const ShareCapture: FC = () => {
 
     const shareData = encodeShareData({
       name: palette.name,
-      folderName: folder?.name || 'Unorganized',
+      folderName: folder?.name || "Unorganized Colors",
       colors: colors,
       folder: folder
     })
@@ -132,12 +132,6 @@ const ShareCapture: FC = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-8">
-            <div className="flex flex-col">
-              <h3 className="text-2xl font-medium text-gray-200">{palette?.name}</h3>
-              <span className="text-sm text-gray-400 mt-1">
-                {folder?.name || 'Unorganized Colors'} • {colors.length} colors
-              </span>
-            </div>
             <ShareActions
               isCapturing={isCapturing}
               capturedImage={capturedImage}

@@ -105,7 +105,7 @@ const SharePalette: FC = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-300 to-primary-500 mb-2">
-                  {shareData.folderName}
+                  {shareData.folderName || "Unorganized Colors"}
                 </h1>
                 <p className="text-gray-400">
                   From <span className="text-gray-300">{shareData.name}</span> • {shareData.colors.length} colors

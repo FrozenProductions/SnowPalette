@@ -100,6 +100,13 @@ const PalettesWorkspace: FC = () => {
 
   const handleDeleteFolder = (folderId: string) => {
     if (currentPalette) {
+      const folderIndex = currentPalette.folders.findIndex(f => f.id === folderId)
+      const nextFolderId = folderIndex < currentPalette.folders.length - 1 
+        ? currentPalette.folders[folderIndex + 1].id 
+        : folderIndex > 0 
+          ? currentPalette.folders[folderIndex - 1].id 
+          : null
+
       const updatedColors = currentPalette.colors.map(color => 
         color.folderId === folderId ? { ...color, folderId: null } : color
       )
@@ -112,7 +119,8 @@ const PalettesWorkspace: FC = () => {
         p.id === currentPalette.id ? updatedPalette : p
       ))
       setCurrentPalette(updatedPalette)
-      showNotification('Folder deleted')
+      setSelectedFolderId(nextFolderId)
+      showNotification("Folder deleted")
     }
   }
 
