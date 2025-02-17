@@ -21,7 +21,6 @@ const PaletteActions: FC<PaletteActionsProps> = ({
         onClick={onAddColor}
         icon={<Plus size={14} />}
         label="Add Color"
-        tooltip="Add a new color (Alt + C)"
         className="sm:min-w-[100px]"
         showLabelOnMobile={false}
       />
@@ -29,7 +28,6 @@ const PaletteActions: FC<PaletteActionsProps> = ({
         onClick={onNewFolder}
         icon={<Folder size={14} />}
         label="New Folder"
-        tooltip="Create a new folder"
         className="sm:min-w-[100px]"
         showLabelOnMobile={false}
       />

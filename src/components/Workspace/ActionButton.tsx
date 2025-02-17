@@ -4,7 +4,7 @@ type ActionButtonProps = {
   onClick?: () => void
   icon: JSX.Element
   label: string
-  tooltip: string
+  tooltip?: string
   className?: string
   showLabelOnMobile?: boolean
 }
@@ -28,9 +28,11 @@ const ActionButton: FC<ActionButtonProps> = ({
           {label}
         </span>
       )}
-      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-dark-800 text-xs text-gray-300 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-dark-600 pointer-events-none z-50">
-        {tooltip}
-      </div>
+      {tooltip && (
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-dark-800 text-xs text-gray-300 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-dark-600 pointer-events-none z-50">
+          {tooltip}
+        </div>
+      )}
     </button>
   )
 }
