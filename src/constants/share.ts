@@ -1,0 +1,1 @@
+export const COLORS_PER_ROW = 6 
