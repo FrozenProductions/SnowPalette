@@ -5,7 +5,7 @@ import { ShareHeader, ShareActions, ShareColorGrid, ShareInfo } from '../compone
 import { COLORS_PER_ROW } from '../constants/share'
 import { STORAGE_KEY } from '../constants/storage'
 import { encodeShareData } from '../utils/share'
-import html2canvas from 'html2canvas'
+import * as htmlToImage from 'html-to-image'
 import Toast from '../components/Toast'
 
 const ShareCapture: FC = () => {
@@ -52,16 +52,27 @@ const ShareCapture: FC = () => {
     setIsCapturing(true)
 
     try {
-      const canvas = await html2canvas(containerRef.current, {
-        backgroundColor: null,
-        scale: 2,
-        logging: false
+      const node = containerRef.current
+      const dataUrl = await htmlToImage.toPng(node, {
+        quality: 1,
+        pixelRatio: 3,
+        skipAutoScale: true,
+        canvasWidth: node.offsetWidth * 3,
+        canvasHeight: node.offsetHeight * 3,
+        backgroundColor: "transparent",
+        filter: (node) => {
+          if (!(node instanceof Element)) return true
+          const exclusionClasses = ["lucide"]
+          return !exclusionClasses.some(className => 
+            node.classList.contains(className)
+          )
+        }
       })
       
-      const dataUrl = canvas.toDataURL('image/png')
       setCapturedImage(dataUrl)
     } catch (err) {
-      console.error('Failed to capture:', err)
+      console.error("Failed to capture:", err)
+      showNotification("Failed to capture image")
     } finally {
       setIsCapturing(false)
     }
@@ -70,19 +81,20 @@ const ShareCapture: FC = () => {
   const handleDownload = () => {
     if (!capturedImage) return
     
-    const a = document.createElement('a')
-    a.href = capturedImage
-    a.download = `${palette?.name}-${folder?.name || 'unorganized'}-colors.png`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+    const link = document.createElement('a')
+    link.href = capturedImage
+    link.download = `${palette?.name}-${folder?.name || 'unorganized'}-colors.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const handleShare = async () => {
     if (!capturedImage) return
 
     try {
-      const blob = await (await fetch(capturedImage)).blob()
+      const response = await fetch(capturedImage)
+      const blob = await response.blob()
       const file = new File([blob], `${palette?.name}-${folder?.name || 'unorganized'}-colors.png`, { type: 'image/png' })
       
       if (navigator.share) {
@@ -104,7 +116,7 @@ const ShareCapture: FC = () => {
 
     const shareData = encodeShareData({
       name: palette.name,
-      folderName: folder?.name || "Unorganized Colors",
+      folderName: folder?.name || 'Unorganized Colors',
       colors: colors,
       folder: folder
     })

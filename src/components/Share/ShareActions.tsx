@@ -16,16 +16,16 @@ const ShareActions: FC<ShareActionsProps> = ({
         <>
           <button
             onClick={onShare}
-            className="px-4 py-2 bg-primary/10 text-sm font-medium text-primary-300 rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors flex items-center gap-2"
+            className="h-9 px-4 bg-primary/10 text-sm font-medium text-primary-300 rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors flex items-center gap-2"
           >
-            <Share2 size={16} />
+            <Share2 size={16} className="shrink-0" />
             Share Image
           </button>
           <button
             onClick={onDownload}
-            className="px-4 py-2 bg-dark-700/50 text-sm font-medium text-gray-300 rounded-xl border border-dark-600 hover:border-primary/50 transition-colors flex items-center gap-2"
+            className="h-9 px-4 bg-dark-700/50 text-sm font-medium text-gray-300 rounded-xl border border-dark-600 hover:border-primary/50 transition-colors flex items-center gap-2"
           >
-            <Download size={16} />
+            <Download size={16} className="shrink-0" />
             Download
           </button>
         </>
@@ -34,25 +34,25 @@ const ShareActions: FC<ShareActionsProps> = ({
           <button
             onClick={onCapture}
             disabled={isCapturing}
-            className="px-4 py-2 bg-primary/10 text-sm font-medium text-primary-300 rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="h-9 px-4 bg-primary/10 text-sm font-medium text-primary-300 rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isCapturing ? (
               <>
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 size={16} className="shrink-0 animate-spin" />
                 Capturing...
               </>
             ) : (
               <>
-                <Camera size={16} />
+                <Camera size={16} className="shrink-0" />
                 Capture Image
               </>
             )}
           </button>
           <button
             onClick={onShareLink}
-            className="px-4 py-2 bg-dark-700/50 text-sm font-medium text-gray-300 rounded-xl border border-dark-600 hover:border-primary/50 transition-colors flex items-center gap-2"
+            className="h-9 px-4 bg-dark-700/50 text-sm font-medium text-gray-300 rounded-xl border border-dark-600 hover:border-primary/50 transition-colors flex items-center gap-2"
           >
-            <Link size={16} />
+            <Link size={16} className="shrink-0" />
             Share Link
           </button>
         </>
