@@ -30,3 +30,15 @@ export type ShareData = {
     colors: ColorItem[]
     folder: Folder | null
   }
+
+export type CompactColor = [
+  string,
+  "b" | "t" | "r" | "a" | "o",
+  string
+]
+
+export type CompactShareData = [
+  string,
+  string | null,
+  CompactColor[]
+]

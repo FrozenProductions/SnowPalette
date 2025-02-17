@@ -39,3 +39,14 @@ export type ColorCardProps = {
   isSelected: boolean
   onSelect: () => void
 } 
+
+export type ColorRange = {
+    name: string
+    hueRange: [number, number]
+    additionalTerms?: string[]
+    specialCases?: {
+      saturation: [number, number]
+      lightness: [number, number]
+      name: string
+    }[]
+}

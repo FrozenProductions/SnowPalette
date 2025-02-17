@@ -1,15 +1,4 @@
-import { ColorValue } from "../types/colors"
-
-type ColorRange = {
-  name: string
-  hueRange: [number, number]
-  additionalTerms?: string[]
-  specialCases?: {
-    saturation: [number, number]
-    lightness: [number, number]
-    name: string
-  }[]
-}
+import { ColorValue, ColorRange } from "../types/colors"
 
 const COLOR_RANGES: ColorRange[] = [
   {
