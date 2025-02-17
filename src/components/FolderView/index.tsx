@@ -18,6 +18,7 @@ interface FolderViewProps {
   onDeleteColor: (colorId: string) => void
   onFolderSelect: (folderId: string | null) => void
   selectedFolderId: string | null
+  onReorderFolders: (folders: FolderType[]) => void
 }
 
 const FolderView: FC<FolderViewProps> = ({
@@ -29,7 +30,8 @@ const FolderView: FC<FolderViewProps> = ({
   onDeleteFolder,
   onDeleteColor,
   onFolderSelect,
-  selectedFolderId
+  selectedFolderId,
+  onReorderFolders
 }) => {
   const [categoryFilter, setCategoryFilter] = useState<ColorCategory | null>(null)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; folder: FolderType } | null>(null)
@@ -182,61 +184,73 @@ const FolderView: FC<FolderViewProps> = ({
                     {colors.filter(c => c.folderId === null).length}
                   </span>
                 </button>
-                {folders.map((folder) => (
-                  <button
-                    key={folder.id}
-                    onClick={() => {
-                      onFolderSelect(folder.id)
-                      setIsFolderListVisible(window.innerWidth > 640)
-                    }}
-                    onContextMenu={(e) => {
-                      e.preventDefault()
-                      setContextMenu({
-                        x: e.clientX,
-                        y: e.clientY,
-                        folder
-                      })
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault()
-                      e.currentTarget.classList.add('border-primary-400')
-                    }}
-                    onDragLeave={(e) => {
-                      e.currentTarget.classList.remove('border-primary-400')
-                    }}
-                    onDrop={(e) => handleFolderDrop(folder.id, e)}
-                    className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
-                      selectedFolderId === folder.id
-                        ? 'bg-primary/10 border-primary/20 text-primary-300'
-                        : 'bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50'
-                    }`}
-                  >
-                    <Folder size={14} className="shrink-0" />
-                    {editingFolderId === folder.id ? (
-                      <input
-                        type="text"
-                        value={folder.name}
-                        onChange={(e) => onUpdateFolderName(folder.id, e.target.value)}
-                        onClick={(e) => e.stopPropagation()}
-                        onBlur={() => setEditingFolderId(null)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            setEditingFolderId(null)
-                          }
+                <Reorder.Group 
+                  axis="y" 
+                  values={folders} 
+                  onReorder={onReorderFolders}
+                  className="space-y-1"
+                >
+                  {folders.map((folder) => (
+                    <Reorder.Item
+                      key={folder.id}
+                      value={folder}
+                      className="touch-none"
+                    >
+                      <button
+                        onClick={() => {
+                          onFolderSelect(folder.id)
+                          setIsFolderListVisible(window.innerWidth > 640)
                         }}
-                        maxLength={10}
-                        autoFocus
-                        className="flex-1 bg-transparent border-none text-sm focus:outline-none focus:ring-0 text-left select-text"
-                      />
-                    ) : (
-                      <span className="flex-1 text-sm truncate text-left">{folder.name}</span>
-                    )}
-                    <span className="text-xs text-gray-400 shrink-0">
-                      {colors.filter(c => c.folderId === folder.id).length}
-                    </span>
-                  </button>
-                ))}
+                        onContextMenu={(e) => {
+                          e.preventDefault()
+                          setContextMenu({
+                            x: e.clientX,
+                            y: e.clientY,
+                            folder
+                          })
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault()
+                          e.currentTarget.classList.add('border-primary-400')
+                        }}
+                        onDragLeave={(e) => {
+                          e.currentTarget.classList.remove('border-primary-400')
+                        }}
+                        onDrop={(e) => handleFolderDrop(folder.id, e)}
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none cursor-move ${
+                          selectedFolderId === folder.id
+                            ? 'bg-primary/10 border-primary/20 text-primary-300'
+                            : 'bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50'
+                        }`}
+                      >
+                        <Folder size={14} className="shrink-0" />
+                        {editingFolderId === folder.id ? (
+                          <input
+                            type="text"
+                            value={folder.name}
+                            onChange={(e) => onUpdateFolderName(folder.id, e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            onBlur={() => setEditingFolderId(null)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                setEditingFolderId(null)
+                              }
+                            }}
+                            maxLength={10}
+                            autoFocus
+                            className="flex-1 bg-transparent border-none text-sm focus:outline-none focus:ring-0 text-left select-text"
+                          />
+                        ) : (
+                          <span className="flex-1 text-sm truncate text-left">{folder.name}</span>
+                        )}
+                        <span className="text-xs text-gray-400 shrink-0">
+                          {colors.filter(c => c.folderId === folder.id).length}
+                        </span>
+                      </button>
+                    </Reorder.Item>
+                  ))}
+                </Reorder.Group>
               </div>
             </div>
           </motion.div>

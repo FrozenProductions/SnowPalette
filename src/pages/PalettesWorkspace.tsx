@@ -263,18 +263,16 @@ const PalettesWorkspace: FC = () => {
     event.target.value = '';
   }
 
-  const handleSavePaletteName = () => {
-    if (currentPalette && paletteName.trim()) {
+  const handleReorderFolders = (newFolders: FolderType[]) => {
+    if (currentPalette) {
       const updatedPalette = {
         ...currentPalette,
-        name: paletteName
+        folders: newFolders
       }
       setPalettes(prev => prev.map(p => 
         p.id === currentPalette.id ? updatedPalette : p
       ))
       setCurrentPalette(updatedPalette)
-      setEditingPaletteName(false)
-      showNotification('Palette name updated')
     }
   }
 
@@ -339,7 +337,19 @@ const PalettesWorkspace: FC = () => {
                     paletteName={paletteName}
                     onNameChange={setPaletteName}
                     onStartEditing={() => setEditingPaletteName(true)}
-                    onSave={handleSavePaletteName}
+                    onSave={() => {
+                      if (currentPalette) {
+                        const updatedPalette = {
+                          ...currentPalette,
+                          name: paletteName
+                        }
+                        setPalettes(prev => prev.map(p => 
+                          p.id === currentPalette.id ? updatedPalette : p
+                        ))
+                        setCurrentPalette(updatedPalette)
+                        setEditingPaletteName(false)
+                      }
+                    }}
                   />
                   <PaletteActions
                     onAddColor={() => setShowColorInput(true)}
@@ -360,6 +370,7 @@ const PalettesWorkspace: FC = () => {
                     onUpdateColors={handleUpdateColors}
                     onFolderSelect={setSelectedFolderId}
                     selectedFolderId={selectedFolderId}
+                    onReorderFolders={handleReorderFolders}
                   />
                 </div>
               </div>
