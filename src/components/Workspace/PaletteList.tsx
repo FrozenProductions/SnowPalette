@@ -1,6 +1,7 @@
 import { FC, useRef, useEffect } from 'react'
-import { Plus, X, MoreVertical } from 'lucide-react'
+import { Plus, X, MoreVertical, Palette as PaletteIcon } from 'lucide-react'
 import { Palette } from '../../types/colors'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface PaletteListProps {
   palettes: Palette[]
@@ -46,57 +47,65 @@ const PaletteList: FC<PaletteListProps> = ({
       <button
         ref={buttonRef}
         onClick={onToggleSidebar}
-        className="p-1.5 bg-dark-800/95 backdrop-blur-sm border border-dark-700 rounded-full text-gray-400 hover:text-white transition-colors"
+        className="p-1.5 bg-dark-800/95 backdrop-blur-sm border border-dark-700 rounded-full text-gray-400 hover:text-white hover:border-primary/50 transition-colors"
       >
         <MoreVertical size={16} />
       </button>
       
-      <div 
-        ref={sidebarRef}
-        className={`absolute right-0 bg-dark-800/95 backdrop-blur-sm border border-dark-700 rounded-2xl px-2 py-1.5 transform transition-all duration-300 ease-in-out ${
-          showSidebar 
-            ? 'translate-x-0 opacity-100 pointer-events-auto' 
-            : 'translate-x-8 opacity-0 pointer-events-none'
-        }`}
-      >
-        <div className="flex flex-col items-stretch gap-1 min-w-[200px]">
-          <div className="px-4 py-1.5 text-sm font-medium text-gray-300 flex items-center justify-between">
-            <span>Your Palettes</span>
-            <button
-              onClick={onNewPalette}
-              className="text-gray-400 hover:text-white transition-colors flex items-center gap-1.5"
-            >
-              <Plus size={14} />
-              <span className="text-xs">New</span>
-            </button>
-          </div>
-          <div className="w-full h-px bg-dark-600" />
-          <div className="max-h-[calc(100vh-24rem)] overflow-y-auto flex flex-col gap-1 py-1">
-            {palettes.map(palette => (
-              <button
-                key={palette.id}
-                onClick={() => onSelectPalette(palette)}
-                className={`group px-2 py-1.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
-                  currentPalette?.id === palette.id
-                    ? 'bg-primary/20 text-primary-300'
-                    : 'text-gray-400 hover:text-white hover:bg-dark-700/50'
-                }`}
-              >
-                <span className="flex-1 text-left">{palette.name}</span>
+      <AnimatePresence>
+        {showSidebar && (
+          <motion.div 
+            ref={sidebarRef}
+            initial={{ opacity: 0, x: 20, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="absolute right-0 bg-dark-800/95 backdrop-blur-sm border border-dark-700 rounded-xl overflow-hidden shadow-xl"
+          >
+            <div className="flex flex-col min-w-[180px]">
+              <div className="p-3 flex items-center justify-between border-b border-dark-700">
+                <div className="flex items-center gap-2">
+                  <PaletteIcon size={14} className="text-primary-300" />
+                  <span className="text-sm font-medium text-gray-300">Palettes</span>
+                </div>
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDeletePalette(palette.id)
-                  }}
-                  className="w-5 h-5 rounded-full hover:bg-red-500/20 hover:text-red-400 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 -mr-1"
+                  onClick={onNewPalette}
+                  className="p-1 rounded-lg hover:bg-primary/10 text-gray-400 hover:text-primary-300 transition-colors"
                 >
-                  <X size={14} />
+                  <Plus size={14} />
                 </button>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+              </div>
+              <div className="p-1.5 max-h-[calc(100vh-24rem)] overflow-y-auto">
+                {palettes.map(palette => (
+                  <motion.button
+                    key={palette.id}
+                    onClick={() => onSelectPalette(palette)}
+                    className={`group w-full px-2 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                      currentPalette?.id === palette.id
+                        ? "bg-primary/10 text-primary-300"
+                        : "text-gray-400 hover:text-white hover:bg-dark-700/50"
+                    }`}
+                    whileHover={{ x: 2 }}
+                    transition={{ duration: 0.1 }}
+                  >
+                    <span className="flex-1 text-left truncate">{palette.name}</span>
+                    <motion.button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDeletePalette(palette.id)
+                      }}
+                      className="w-5 h-5 rounded-lg hover:bg-red-500/20 hover:text-red-400 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100"
+                      whileHover={{ scale: 1.1 }}
+                    >
+                      <X size={12} />
+                    </motion.button>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
