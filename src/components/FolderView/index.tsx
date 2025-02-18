@@ -223,8 +223,10 @@ const FolderView: FC<FolderViewProps> = ({
                     >
                       <button
                         onClick={() => {
-                          onFolderSelect(folder.id)
-                          setIsFolderListVisible(window.innerWidth > 640)
+                          if (editingFolderId !== folder.id) {
+                            onFolderSelect(folder.id)
+                            setIsFolderListVisible(window.innerWidth > 640)
+                          }
                         }}
                         onContextMenu={(e) => {
                           e.preventDefault()
@@ -236,16 +238,16 @@ const FolderView: FC<FolderViewProps> = ({
                         }}
                         onDragOver={(e) => {
                           e.preventDefault()
-                          e.currentTarget.classList.add('border-primary-400')
+                          e.currentTarget.classList.add("border-primary-400")
                         }}
                         onDragLeave={(e) => {
-                          e.currentTarget.classList.remove('border-primary-400')
+                          e.currentTarget.classList.remove("border-primary-400")
                         }}
                         onDrop={(e) => handleFolderDrop(folder.id, e)}
                         className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none cursor-move ${
                           selectedFolderId === folder.id
-                            ? 'bg-primary/10 border-primary/20 text-primary-300'
-                            : 'bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50'
+                            ? "bg-primary/10 border-primary/20 text-primary-300"
+                            : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
                         }`}
                       >
                         <Folder size={14} className="shrink-0" />
@@ -257,12 +259,13 @@ const FolderView: FC<FolderViewProps> = ({
                             onClick={(e) => e.stopPropagation()}
                             onBlur={() => setEditingFolderId(null)}
                             onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
+                              e.stopPropagation()
+                              if (e.key === "Enter") {
                                 e.preventDefault()
                                 setEditingFolderId(null)
                               }
                             }}
-                            maxLength={10}
+                            maxLength={16}
                             autoFocus
                             className="flex-1 bg-transparent border-none text-sm focus:outline-none focus:ring-0 text-left select-text"
                           />
