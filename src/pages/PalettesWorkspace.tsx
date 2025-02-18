@@ -352,6 +352,38 @@ const PalettesWorkspace: FC = () => {
     selectedFolderIdRef.current = selectedFolderId
   }, [selectedFolderId, currentPalette])
 
+  const handleMoveFolders = (folderIds: string[], targetPaletteId: string) => {
+    if (!currentPalette || currentPalette.id === targetPaletteId) return
+
+    const foldersToMove = currentPalette.folders.filter(f => folderIds.includes(f.id))
+    const colorsToMove = currentPalette.colors.filter(c => c.folderId && folderIds.includes(c.folderId))
+
+    const updatedSourcePalette = {
+      ...currentPalette,
+      folders: currentPalette.folders.filter(f => !folderIds.includes(f.id)),
+      colors: currentPalette.colors.filter(c => !c.folderId || !folderIds.includes(c.folderId))
+    }
+
+    const targetPalette = palettes.find(p => p.id === targetPaletteId)
+    if (targetPalette) {
+      const updatedTargetPalette = {
+        ...targetPalette,
+        folders: [...targetPalette.folders, ...foldersToMove],
+        colors: [...targetPalette.colors, ...colorsToMove]
+      }
+
+      setPalettes(prev => prev.map(p => {
+        if (p.id === currentPalette.id) return updatedSourcePalette
+        if (p.id === targetPaletteId) return updatedTargetPalette
+        return p
+      }))
+
+      setCurrentPalette(updatedSourcePalette)
+      setSelectedFolderId(null)
+      showNotification(`${folderIds.length} folder${folderIds.length > 1 ? "s" : ""} moved to ${targetPalette.name}`)
+    }
+  }
+
   const shortcuts = useShortcuts({
     "new-palette": {
       key: "n",
@@ -458,6 +490,7 @@ const PalettesWorkspace: FC = () => {
                     onFolderSelect={handleFolderSelect}
                     selectedFolderId={selectedFolderId}
                     onReorderFolders={handleReorderFolders}
+                    onMoveFolders={handleMoveFolders}
                   />
                 </div>
               </div>
@@ -487,6 +520,7 @@ const PalettesWorkspace: FC = () => {
         onSelectPalette={setCurrentPalette}
         onDeletePalette={handleDeletePalette}
         onToggleSidebar={() => setShowSidebar(prev => !prev)}
+        onMoveFolders={handleMoveFolders}
       />
 
       <AddColorModal

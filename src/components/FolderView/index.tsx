@@ -20,6 +20,7 @@ interface FolderViewProps {
   onFolderSelect: (folderId: string | null) => void
   selectedFolderId: string | null
   onReorderFolders: (folders: FolderType[]) => void
+  onMoveFolders?: (folderIds: string[], targetPaletteId: string) => void
 }
 
 const FolderView: FC<FolderViewProps> = ({
@@ -46,6 +47,11 @@ const FolderView: FC<FolderViewProps> = ({
   const [selectedColors, setSelectedColors] = useState<string[]>([])
   const [showCategoryManager, setShowCategoryManager] = useState(false)
   const categoryManagerRef = useRef<HTMLDivElement>(null)
+  const [selectedFolders, setSelectedFolders] = useState<string[]>([])
+
+  useEffect(() => {
+    setSelectedFolders([])
+  }, [folders])
 
   useEffect(() => {
     const handleResize = () => {
@@ -157,6 +163,53 @@ const FolderView: FC<FolderViewProps> = ({
     setShowCategoryManager(false)
   }
 
+  const handleFolderClick = (folderId: string, e: React.MouseEvent) => {
+    if (e.metaKey || e.ctrlKey) {
+      setSelectedFolders(prev => {
+        const newSelection = prev.includes(folderId)
+          ? prev.filter(id => id !== folderId)
+          : [...prev, folderId]
+        return newSelection
+      })
+    } else {
+      setSelectedFolders([])
+      if (editingFolderId !== folderId) {
+        onFolderSelect(folderId)
+        setIsFolderListVisible(window.innerWidth > 640)
+      }
+    }
+  }
+
+  const handleFolderDragStart = (e: React.DragEvent, folderId: string) => {
+    if (!selectedFolders.includes(folderId)) {
+      setSelectedFolders([folderId])
+    }
+
+    const dragPreview = document.createElement("div")
+    dragPreview.className = "fixed top-0 left-0 bg-dark-800/95 border border-primary/20 rounded-xl px-3 py-2 text-primary-300 pointer-events-none"
+    dragPreview.innerHTML = `Moving ${selectedFolders.length || 1} folder${selectedFolders.length !== 1 ? "s" : ""}`
+    dragPreview.style.position = "absolute"
+    dragPreview.style.top = "-1000px"
+    document.body.appendChild(dragPreview)
+    e.dataTransfer.setDragImage(dragPreview, 0, 0)
+
+    const dragData = {
+      type: "folders",
+      folderIds: selectedFolders.length ? selectedFolders : [folderId],
+      sourcePaletteId: paletteId
+    }
+    e.dataTransfer.setData("application/json", JSON.stringify(dragData))
+    e.dataTransfer.effectAllowed = "move"
+
+    window.dispatchEvent(new CustomEvent("folderDragStart"))
+
+    requestAnimationFrame(() => document.body.removeChild(dragPreview))
+  }
+
+  const handleFolderDragEnd = () => {
+    window.dispatchEvent(new CustomEvent("folderDragEnd"))
+  }
+
   return (
     <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 h-full min-h-0">
       <Toast 
@@ -187,20 +240,21 @@ const FolderView: FC<FolderViewProps> = ({
                 <button
                   onClick={() => {
                     onFolderSelect(null)
+                    setSelectedFolders([])
                     setIsFolderListVisible(window.innerWidth > 640)
                   }}
                   onDragOver={(e) => {
                     e.preventDefault()
-                    e.currentTarget.classList.add('border-primary-400')
+                    e.currentTarget.classList.add("border-primary-400")
                   }}
                   onDragLeave={(e) => {
-                    e.currentTarget.classList.remove('border-primary-400')
+                    e.currentTarget.classList.remove("border-primary-400")
                   }}
                   onDrop={(e) => handleFolderDrop(null, e)}
                   className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
                     selectedFolderId === null
-                      ? 'bg-primary/10 border-primary/20 text-primary-300'
-                      : 'bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50'
+                      ? "bg-primary/10 border-primary/20 text-primary-300"
+                      : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
                   }`}
                 >
                   <Folder size={14} className="shrink-0" />
@@ -220,14 +274,13 @@ const FolderView: FC<FolderViewProps> = ({
                       key={folder.id}
                       value={folder}
                       className="touch-none"
+                      dragListener={false}
                     >
                       <button
-                        onClick={() => {
-                          if (editingFolderId !== folder.id) {
-                            onFolderSelect(folder.id)
-                            setIsFolderListVisible(window.innerWidth > 640)
-                          }
-                        }}
+                        draggable
+                        onDragStart={(e) => handleFolderDragStart(e, folder.id)}
+                        onDragEnd={handleFolderDragEnd}
+                        onClick={(e) => handleFolderClick(folder.id, e)}
                         onContextMenu={(e) => {
                           e.preventDefault()
                           setContextMenu({
@@ -236,18 +289,12 @@ const FolderView: FC<FolderViewProps> = ({
                             folder
                           })
                         }}
-                        onDragOver={(e) => {
-                          e.preventDefault()
-                          e.currentTarget.classList.add("border-primary-400")
-                        }}
-                        onDragLeave={(e) => {
-                          e.currentTarget.classList.remove("border-primary-400")
-                        }}
-                        onDrop={(e) => handleFolderDrop(folder.id, e)}
                         className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none cursor-move ${
-                          selectedFolderId === folder.id
-                            ? "bg-primary/10 border-primary/20 text-primary-300"
-                            : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
+                          selectedFolders.includes(folder.id)
+                            ? "bg-primary/20 border-primary/30 text-primary-300"
+                            : selectedFolderId === folder.id
+                              ? "bg-primary/10 border-primary/20 text-primary-300"
+                              : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
                         }`}
                       >
                         <Folder size={14} className="shrink-0" />
