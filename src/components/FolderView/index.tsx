@@ -497,6 +497,7 @@ const FolderView: FC<FolderViewProps> = ({
             onUpdateColors={onUpdateColors}
             onSelectColors={setSelectedColors}
             selectedColors={selectedColors}
+            categoryFilter={categoryFilter}
           />
         )}
       </AnimatePresence>
