@@ -430,26 +430,36 @@ const FolderView: FC<FolderViewProps> = ({
         </div>
 
         <div className="relative flex-1 min-h-0 overflow-y-auto">
-          <Reorder.Group
-            axis="y"
-            values={finalFilteredColors}
-            onReorder={handleReorder}
-            className="space-y-2"
-          >
-            {finalFilteredColors.map((color) => (
-              <ColorCard
-                key={color.id}
-                color={color}
-                onDelete={() => onDeleteColor(color.id)}
-                onRename={(newName) => handleRenameColor(color.id, newName)}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                isReordering={isReordering}
-                isSelected={selectedColors.includes(color.id)}
-                onSelect={() => handleColorSelect(color.id)}
-              />
-            ))}
-          </Reorder.Group>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedFolderId || "unorganized"}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+            >
+              <Reorder.Group
+                axis="y"
+                values={finalFilteredColors}
+                onReorder={handleReorder}
+                className="space-y-2"
+              >
+                {finalFilteredColors.map((color) => (
+                  <ColorCard
+                    key={color.id}
+                    color={color}
+                    onDelete={() => onDeleteColor(color.id)}
+                    onRename={(newName) => handleRenameColor(color.id, newName)}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    isReordering={isReordering}
+                    isSelected={selectedColors.includes(color.id)}
+                    onSelect={() => handleColorSelect(color.id)}
+                  />
+                ))}
+              </Reorder.Group>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
