@@ -4,101 +4,131 @@ const COLOR_RANGES: ColorRange[] = [
   {
     name: "Red",
     hueRange: [355, 10],
-    additionalTerms: ["Ruby", "Crimson", "Scarlet", "Cardinal", "Maroon", "Wine", "Cherry", "Blood", "Fire", "Brick"],
+    additionalTerms: ["Ruby", "Crimson", "Scarlet", "Cardinal", "Maroon", "Wine", "Cherry", "Blood", "Fire", "Brick", "Vermilion", "Carmine"],
     specialCases: [
-      { saturation: [80, 100], lightness: [45, 55], name: "Pure Red" },
+      { saturation: [90, 100], lightness: [45, 55], name: "Pure Red" },
       { saturation: [70, 90], lightness: [30, 40], name: "Blood Red" },
-      { saturation: [60, 80], lightness: [70, 85], name: "Rose Pink" }
+      { saturation: [60, 80], lightness: [70, 85], name: "Rose Pink" },
+      { saturation: [80, 95], lightness: [35, 45], name: "Crimson" },
+      { saturation: [50, 70], lightness: [25, 35], name: "Maroon" },
+      { saturation: [40, 60], lightness: [60, 75], name: "Coral Red" }
     ]
   },
   {
     name: "Orange",
     hueRange: [10, 45],
-    additionalTerms: ["Amber", "Coral", "Tangerine", "Rust", "Peach", "Apricot", "Copper", "Bronze", "Cinnamon", "Terracotta"],
+    additionalTerms: ["Amber", "Coral", "Tangerine", "Rust", "Peach", "Apricot", "Copper", "Bronze", "Cinnamon", "Terracotta", "Burnt", "Mandarin"],
     specialCases: [
       { saturation: [85, 100], lightness: [50, 60], name: "Pure Orange" },
       { saturation: [70, 90], lightness: [70, 85], name: "Peach" },
-      { saturation: [60, 80], lightness: [30, 40], name: "Rust" }
+      { saturation: [60, 80], lightness: [30, 40], name: "Rust" },
+      { saturation: [75, 90], lightness: [45, 55], name: "Tangerine" },
+      { saturation: [50, 70], lightness: [60, 75], name: "Coral" },
+      { saturation: [40, 60], lightness: [40, 50], name: "Terracotta" }
     ]
   },
   {
     name: "Yellow",
     hueRange: [45, 70],
-    additionalTerms: ["Gold", "Lemon", "Canary", "Sunshine", "Butter", "Honey", "Daffodil", "Banana", "Wheat", "Cream"],
+    additionalTerms: ["Gold", "Lemon", "Canary", "Sunshine", "Butter", "Honey", "Daffodil", "Banana", "Wheat", "Cream", "Amber", "Flax"],
     specialCases: [
       { saturation: [90, 100], lightness: [50, 60], name: "Pure Yellow" },
       { saturation: [80, 95], lightness: [40, 50], name: "Golden Yellow" },
-      { saturation: [20, 40], lightness: [80, 90], name: "Cream" }
+      { saturation: [20, 40], lightness: [80, 90], name: "Cream" },
+      { saturation: [70, 85], lightness: [55, 65], name: "Lemon" },
+      { saturation: [60, 75], lightness: [70, 80], name: "Butter" },
+      { saturation: [50, 65], lightness: [45, 55], name: "Amber" }
     ]
   },
   {
     name: "Lime",
     hueRange: [70, 150],
-    additionalTerms: ["Chartreuse", "Sage", "Mint", "Olive", "Pistachio", "Fern", "Spring", "Grass", "Forest", "Moss"],
+    additionalTerms: ["Chartreuse", "Sage", "Mint", "Olive", "Pistachio", "Fern", "Spring", "Grass", "Forest", "Moss", "Verdant", "Apple"],
     specialCases: [
       { saturation: [85, 100], lightness: [45, 55], name: "Pure Lime" },
       { saturation: [30, 50], lightness: [30, 40], name: "Olive" },
-      { saturation: [40, 60], lightness: [80, 90], name: "Mint" }
+      { saturation: [40, 60], lightness: [80, 90], name: "Mint" },
+      { saturation: [70, 85], lightness: [50, 60], name: "Chartreuse" },
+      { saturation: [45, 65], lightness: [35, 45], name: "Forest" },
+      { saturation: [30, 45], lightness: [60, 70], name: "Sage" }
     ]
   },
   {
     name: "Green",
     hueRange: [150, 170],
-    additionalTerms: ["Emerald", "Forest", "Jade", "Pine", "Shamrock", "Seaweed", "Basil", "Hunter", "Kelly", "Malachite"],
+    additionalTerms: ["Emerald", "Forest", "Jade", "Pine", "Shamrock", "Seaweed", "Basil", "Hunter", "Kelly", "Malachite", "Viridian", "Juniper"],
     specialCases: [
       { saturation: [85, 100], lightness: [45, 55], name: "Pure Green" },
       { saturation: [70, 90], lightness: [25, 35], name: "Forest Green" },
-      { saturation: [50, 70], lightness: [70, 85], name: "Seafoam" }
+      { saturation: [50, 70], lightness: [70, 85], name: "Seafoam" },
+      { saturation: [75, 90], lightness: [40, 50], name: "Emerald" },
+      { saturation: [40, 60], lightness: [30, 40], name: "Hunter" },
+      { saturation: [60, 75], lightness: [60, 70], name: "Jade" }
     ]
   },
   {
     name: "Teal",
     hueRange: [170, 195],
-    additionalTerms: ["Turquoise", "Aqua", "Cyan", "Ocean", "Sea", "Lagoon", "Marine", "Cerulean", "Arctic", "Aegean"],
+    additionalTerms: ["Turquoise", "Aqua", "Cyan", "Ocean", "Sea", "Lagoon", "Marine", "Cerulean", "Arctic", "Aegean", "Aquamarine", "Beryl"],
     specialCases: [
       { saturation: [85, 100], lightness: [45, 55], name: "Pure Teal" },
       { saturation: [60, 80], lightness: [30, 40], name: "Deep Sea" },
-      { saturation: [50, 70], lightness: [75, 85], name: "Aqua" }
+      { saturation: [50, 70], lightness: [75, 85], name: "Aqua" },
+      { saturation: [70, 85], lightness: [50, 60], name: "Turquoise" },
+      { saturation: [45, 65], lightness: [65, 75], name: "Aquamarine" },
+      { saturation: [55, 70], lightness: [35, 45], name: "Marine" }
     ]
   },
   {
     name: "Blue",
     hueRange: [195, 240],
-    additionalTerms: ["Azure", "Sapphire", "Ocean", "Sky", "Denim", "Steel", "Arctic", "Cornflower", "Royal", "Lapis"],
+    additionalTerms: ["Azure", "Sapphire", "Ocean", "Sky", "Denim", "Steel", "Arctic", "Cornflower", "Royal", "Lapis", "Cerulean", "Cobalt"],
     specialCases: [
       { saturation: [85, 100], lightness: [45, 55], name: "Pure Blue" },
       { saturation: [70, 90], lightness: [25, 35], name: "Deep Blue" },
-      { saturation: [40, 60], lightness: [75, 85], name: "Sky Blue" }
+      { saturation: [40, 60], lightness: [75, 85], name: "Sky Blue" },
+      { saturation: [75, 90], lightness: [40, 50], name: "Sapphire" },
+      { saturation: [50, 70], lightness: [55, 65], name: "Azure" },
+      { saturation: [45, 65], lightness: [30, 40], name: "Navy" }
     ]
   },
   {
     name: "Indigo",
     hueRange: [240, 280],
-    additionalTerms: ["Royal", "Cobalt", "Navy", "Midnight", "Twilight", "Periwinkle", "Iris", "Ultramarine", "Cosmic", "Storm"],
+    additionalTerms: ["Royal", "Cobalt", "Navy", "Midnight", "Twilight", "Periwinkle", "Iris", "Ultramarine", "Cosmic", "Storm", "Mystic", "Dusk"],
     specialCases: [
       { saturation: [85, 100], lightness: [45, 55], name: "Pure Indigo" },
       { saturation: [70, 90], lightness: [20, 30], name: "Midnight Blue" },
-      { saturation: [30, 50], lightness: [70, 85], name: "Periwinkle" }
+      { saturation: [30, 50], lightness: [70, 85], name: "Periwinkle" },
+      { saturation: [75, 90], lightness: [35, 45], name: "Royal Indigo" },
+      { saturation: [50, 70], lightness: [40, 50], name: "Twilight" },
+      { saturation: [40, 60], lightness: [60, 70], name: "Iris" }
     ]
   },
   {
     name: "Purple",
     hueRange: [280, 320],
-    additionalTerms: ["Violet", "Amethyst", "Plum", "Lavender", "Mauve", "Grape", "Orchid", "Mulberry", "Heliotrope", "Thistle"],
+    additionalTerms: ["Violet", "Amethyst", "Plum", "Lavender", "Mauve", "Grape", "Orchid", "Mulberry", "Heliotrope", "Thistle", "Byzantium", "Wine"],
     specialCases: [
       { saturation: [85, 100], lightness: [45, 55], name: "Pure Purple" },
       { saturation: [70, 90], lightness: [25, 35], name: "Royal Purple" },
-      { saturation: [30, 50], lightness: [75, 85], name: "Lavender" }
+      { saturation: [30, 50], lightness: [75, 85], name: "Lavender" },
+      { saturation: [75, 90], lightness: [35, 45], name: "Amethyst" },
+      { saturation: [50, 70], lightness: [45, 55], name: "Violet" },
+      { saturation: [40, 60], lightness: [65, 75], name: "Orchid" }
     ]
   },
   {
     name: "Pink",
     hueRange: [320, 355],
-    additionalTerms: ["Rose", "Magenta", "Fuchsia", "Salmon", "Bubblegum", "Blush", "Berry", "Cerise", "Hot Pink", "Flamingo"],
+    additionalTerms: ["Rose", "Magenta", "Fuchsia", "Salmon", "Bubblegum", "Blush", "Berry", "Cerise", "Hot Pink", "Flamingo", "Ruby", "Punch"],
     specialCases: [
       { saturation: [85, 100], lightness: [45, 55], name: "Pure Pink" },
       { saturation: [70, 90], lightness: [65, 75], name: "Hot Pink" },
-      { saturation: [20, 40], lightness: [75, 85], name: "Baby Pink" }
+      { saturation: [20, 40], lightness: [75, 85], name: "Baby Pink" },
+      { saturation: [75, 90], lightness: [50, 60], name: "Fuchsia" },
+      { saturation: [50, 70], lightness: [70, 80], name: "Bubblegum" },
+      { saturation: [40, 60], lightness: [55, 65], name: "Rose" }
     ]
   }
 ]
@@ -213,8 +243,13 @@ const checkSpecialColor = (hue: number, saturation: number, lightness: number) =
   return null
 }
 
+const getColorIntensity = (saturation: number, lightness: number): number => {
+  return (saturation * (1 - Math.abs(2 * lightness - 1))) / 100
+}
+
 export const generateColorName = (colorValue: ColorValue): string => {
   const [hue, saturation, lightness] = hexToHsl(colorValue)
+  const intensity = getColorIntensity(saturation, lightness)
 
   const specialColor = checkSpecialColor(hue, saturation, lightness)
   if (specialColor) return specialColor
@@ -240,9 +275,11 @@ export const generateColorName = (colorValue: ColorValue): string => {
   )
   if (specialCase) return specialCase.name
 
-  const additionalTerm = colorRange.additionalTerms?.[
-    Math.floor(Math.random() * (colorRange.additionalTerms.length * 0.7))
-  ]
+  const additionalTermIndex = Math.floor(
+    ((hue % 360) + saturation + lightness + (intensity * 100)) % 
+    (colorRange.additionalTerms?.length || 1)
+  )
+  const additionalTerm = colorRange.additionalTerms?.[additionalTermIndex]
 
   let name = ""
   if (lightnessDesc.prefix) name += lightnessDesc.prefix + " "
