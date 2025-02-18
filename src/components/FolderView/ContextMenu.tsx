@@ -1,5 +1,5 @@
 import { FC, useEffect, useRef, useState } from 'react'
-import { Folder, Pencil, Trash2, MoreHorizontal, Share2, LucideIcon, Wand2, XCircle, CheckSquare, Square } from 'lucide-react'
+import { Folder, Pencil, Trash2, MoreHorizontal, Share2, LucideIcon, Wand2, XCircle, CheckSquare, Square, Copy } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { ColorItem, Folder as FolderType } from '../../types/colors'
 import { useNavigate } from 'react-router-dom'
@@ -59,6 +59,17 @@ const ContextMenu: FC<ContextMenuProps> = ({
       }, 
       color: 'primary',
       isGroupStart: true
+    },
+    { 
+      label: 'Copy Colors', 
+      icon: Copy, 
+      onClick: () => {
+        const colorValues = folderOperations.copyFolderColors(colors, folder.id)
+        if (colorValues.length > 0) {
+          navigator.clipboard.writeText(colorValues.join(", "))
+        }
+      }, 
+      color: 'primary' 
     },
     { 
       label: 'Delete All Colors', 

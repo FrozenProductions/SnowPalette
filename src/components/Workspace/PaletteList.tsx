@@ -181,16 +181,16 @@ const PaletteList: FC<PaletteListProps> = ({
                     transition={{ duration: 0.15 }}
                   >
                     <span className="flex-1 text-left truncate">{palette.name}</span>
-                    <motion.button
+                    <motion.div
                       onClick={(e) => {
                         e.stopPropagation()
                         onDeletePalette(palette.id)
                       }}
-                      className="w-4 h-4 -mr-0.5 rounded-md hover:bg-dark-700/50 text-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100"
+                      className="w-4 h-4 -mr-0.5 rounded-md hover:bg-dark-700/50 text-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
                       whileHover={{ scale: 1.1 }}
                     >
                       <X size={10} />
-                    </motion.button>
+                    </motion.div>
                   </motion.button>
                 ))}
               </div>
