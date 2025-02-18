@@ -54,6 +54,10 @@ const FolderView: FC<FolderViewProps> = ({
   }, [folders])
 
   useEffect(() => {
+    setSelectedColors([])
+  }, [paletteId])
+
+  useEffect(() => {
     const handleResize = () => {
       setIsFolderListVisible(window.innerWidth > 640)
     }
