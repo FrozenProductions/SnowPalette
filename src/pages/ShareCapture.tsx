@@ -8,17 +8,21 @@ import { encodeShareData } from '../utils/share'
 import * as htmlToImage from 'html-to-image'
 import Toast from '../components/Toast'
 
+type ToastState = {
+  show: boolean
+  message: string
+}
+
 const ShareCapture: FC = () => {
   const navigate = useNavigate()
   const { paletteId, folderId } = useParams()
   const containerRef = useRef<HTMLDivElement>(null)
-  const [isCapturing, setIsCapturing] = useState(false)
+  const [isCapturing, setIsCapturing] = useState<boolean>(false)
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
   const [colors, setColors] = useState<ColorItem[]>([])
   const [folder, setFolder] = useState<Folder | null>(null)
   const [palette, setPalette] = useState<Palette | null>(null)
-  const [showToast, setShowToast] = useState(false)
-  const [toastMessage, setToastMessage] = useState("")
+  const [toast, setToast] = useState<ToastState>({ show: false, message: "" })
 
   useEffect(() => {
     const savedData = localStorage.getItem(STORAGE_KEY)
@@ -42,34 +46,59 @@ const ShareCapture: FC = () => {
     }
   }, [paletteId, folderId])
 
-  const showNotification = (message: string) => {
-    setToastMessage(message)
-    setShowToast(true)
+  const showNotification = (message: string): void => {
+    setToast({ show: true, message })
   }
 
-  const handleCapture = async () => {
+  const handleCapture = async (): Promise<void> => {
     if (!containerRef.current) return
     setIsCapturing(true)
 
     try {
-      const node = containerRef.current
-      const dataUrl = await htmlToImage.toPng(node, {
+      const node: HTMLElement = containerRef.current
+      const scale: number = Math.max(2, window.devicePixelRatio || 1)
+      const dataUrl: string = await htmlToImage.toPng(node, {
         quality: 1,
-        pixelRatio: 3,
+        pixelRatio: scale,
         skipAutoScale: true,
-        canvasWidth: node.offsetWidth * 3,
-        canvasHeight: node.offsetHeight * 3,
+        canvasWidth: node.offsetWidth * scale,
+        canvasHeight: node.offsetHeight * scale,
         backgroundColor: "transparent",
+        style: {
+          transform: "scale(1)",
+          transformOrigin: "top left",
+          width: `${node.offsetWidth}px`,
+          height: `${node.offsetHeight}px`
+        },
         filter: (node) => {
           if (!(node instanceof Element)) return true
-          const exclusionClasses = ["lucide"]
-          return !exclusionClasses.some(className => 
-            node.classList.contains(className)
-          )
+          return !node.classList.contains("lucide")
         }
       })
       
-      setCapturedImage(dataUrl)
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        const maxWidth = 2400
+        let width: number = img.width
+        let height: number = img.height
+
+        if (width > maxWidth) {
+          height = (maxWidth * height) / width
+          width = maxWidth
+        }
+
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext("2d")
+        if (ctx) {
+          ctx.imageSmoothingEnabled = true
+          ctx.imageSmoothingQuality = "high"
+          ctx.drawImage(img, 0, 0, width, height)
+          setCapturedImage(canvas.toDataURL("image/png", 1))
+        }
+      }
+      img.src = dataUrl
     } catch (err) {
       console.error("Failed to capture:", err)
       showNotification("Failed to capture image")
@@ -179,9 +208,9 @@ const ShareCapture: FC = () => {
       </main>
 
       <Toast
-        message={toastMessage}
-        isVisible={showToast}
-        onHide={() => setShowToast(false)}
+        message={toast.message}
+        isVisible={toast.show}
+        onHide={() => setToast({ show: false, message: "" })}
       />
     </div>
   )
