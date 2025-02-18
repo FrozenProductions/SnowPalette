@@ -450,7 +450,7 @@ const FolderView: FC<FolderViewProps> = ({
                 onReorder={handleReorder}
                 className="space-y-2"
               >
-                {finalFilteredColors.map((color, index) => (
+                {finalFilteredColors.map((color) => (
                   <motion.div
                     key={color.id}
                     variants={{

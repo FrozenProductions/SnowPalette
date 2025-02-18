@@ -186,10 +186,10 @@ const PaletteList: FC<PaletteListProps> = ({
                         e.stopPropagation()
                         onDeletePalette(palette.id)
                       }}
-                      className="w-4 h-4 -mr-0.5 rounded-md hover:bg-dark-700/50 text-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
+                      className="w-5 h-5 -mr-1 rounded-md hover:bg-dark-700/50 text-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
                       whileHover={{ scale: 1.1 }}
                     >
-                      <X size={10} />
+                      <X size={12} />
                     </motion.div>
                   </motion.button>
                 ))}
