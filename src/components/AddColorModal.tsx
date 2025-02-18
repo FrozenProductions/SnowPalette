@@ -1,5 +1,5 @@
 import { FC, useState, useEffect, useRef } from 'react'
-import { X, Camera, Loader2, ChevronUp, ChevronDown } from 'lucide-react'
+import { X, Camera, Loader2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { extractColors } from '../utils/colorExtractor'
 
@@ -150,6 +150,8 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
   const [extractedColors, setExtractedColors] = useState<string[]>([])
   const [isExtracting, setIsExtracting] = useState(false)
   const [numColors, setNumColors] = useState(6)
+  const [currentPage, setCurrentPage] = useState(1)
+  const COLORS_PER_PAGE = 12
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -157,21 +159,37 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
 
     const handlePaste = (e: ClipboardEvent) => {
       e.preventDefault()
-      const text = e.clipboardData?.getData('text')
+      const text = e.clipboardData?.getData("text")
       if (!text) return
 
-      const color = tryParseColor(text)
-      if (color) {
-        const newRgb = hexToRgb(color) || { r: 0, g: 0, b: 0 }
-        setHex(color)
-        setRgb(newRgb)
-        setHsl(rgbToHsl(newRgb.r, newRgb.g, newRgb.b))
+      const colors = text
+        .split(/[\s,]+/)
+        .map(color => tryParseColor(color))
+        .filter((color): color is string => color !== null)
+
+      if (colors.length > 0) {
+        if (colors.length === 1) {
+          const newRgb = hexToRgb(colors[0]) || { r: 0, g: 0, b: 0 }
+          setHex(colors[0])
+          setRgb(newRgb)
+          setHsl(rgbToHsl(newRgb.r, newRgb.g, newRgb.b))
+        } else {
+          setExtractedColors(colors)
+        }
       }
     }
 
-    document.addEventListener('paste', handlePaste)
-    return () => document.removeEventListener('paste', handlePaste)
+    document.addEventListener("paste", handlePaste)
+    return () => document.removeEventListener("paste", handlePaste)
   }, [isOpen])
+
+  const handleReset = () => {
+    setExtractedColors([])
+    setHex(initialColor)
+    const newRgb = hexToRgb(initialColor) || { r: 0, g: 0, b: 0 }
+    setRgb(newRgb)
+    setHsl(rgbToHsl(newRgb.r, newRgb.g, newRgb.b))
+  }
 
   const handleHexChange = (value: string) => {
     if (value.startsWith('#')) {
@@ -290,19 +308,22 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
                 <div className="w-full h-full" style={{ backgroundColor: hex }} />
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-400">Hex</label>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-gray-400">Hex</label>
+                    <span className="text-xs text-gray-500">Paste multiple colors separated by spaces or commas</span>
+                  </div>
                   <input
                     type="text"
                     value={hex}
                     onChange={(e) => handleHexChange(e.target.value)}
-                    className="w-full px-3 py-2 bg-dark-700 border border-dark-600 rounded-lg text-sm focus:border-primary/50 focus:outline-none font-mono"
+                    className="w-full px-3 py-1 bg-dark-700 border border-dark-600 rounded-lg text-sm focus:border-primary/50 focus:outline-none font-mono"
                     placeholder="#000000"
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <label className="text-xs font-medium text-gray-400">RGB</label>
                   <div className="flex gap-2">
                     {(['r', 'g', 'b'] as const).map((key) => (
@@ -313,7 +334,7 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
                           pattern="[0-9]*"
                           value={rgb[key]}
                           onChange={(e) => handleRgbChange(key, e.target.value)}
-                          className="w-full px-3 py-2 bg-dark-700 border border-dark-600 rounded-lg text-sm focus:border-primary/50 focus:outline-none font-mono text-center"
+                          className="w-full px-3 py-1 bg-dark-700 border border-dark-600 rounded-lg text-sm focus:border-primary/50 focus:outline-none font-mono text-center"
                           placeholder="0"
                         />
                       </div>
@@ -321,7 +342,7 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <label className="text-xs font-medium text-gray-400">HSL</label>
                   <div className="flex gap-2">
                     {(['h', 's', 'l'] as const).map((key) => (
@@ -332,7 +353,7 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
                           pattern="[0-9]*"
                           value={hsl[key]}
                           onChange={(e) => handleHslChange(key, e.target.value)}
-                          className="w-full px-3 py-2 bg-dark-700 border border-dark-600 rounded-lg text-sm focus:border-primary/50 focus:outline-none font-mono text-center"
+                          className="w-full px-3 py-1 bg-dark-700 border border-dark-600 rounded-lg text-sm focus:border-primary/50 focus:outline-none font-mono text-center"
                           placeholder="0"
                         />
                       </div>
@@ -400,19 +421,55 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
 
                 {extractedColors.length > 0 && (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-6 gap-2">
-                      {extractedColors.map((color, index) => (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-300">{extractedColors.length} colors</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="p-1 text-gray-400 hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <ChevronLeft size={14} />
+                          </button>
+                          <span className="text-xs text-gray-400">
+                            {currentPage} / {Math.ceil(extractedColors.length / COLORS_PER_PAGE)}
+                          </span>
+                          <button
+                            onClick={() => setCurrentPage(prev => Math.min(Math.ceil(extractedColors.length / COLORS_PER_PAGE), prev + 1))}
+                            disabled={currentPage === Math.ceil(extractedColors.length / COLORS_PER_PAGE)}
+                            className="p-1 text-gray-400 hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <ChevronRight size={14} />
+                          </button>
+                        </div>
+                        <div className="w-px h-4 bg-dark-600" />
                         <button
-                          key={index}
-                          onClick={() => handleExtractedColorClick(color)}
-                          className="aspect-square rounded-lg ring-1 ring-dark-600 hover:ring-primary/50 transition-colors overflow-hidden"
+                          onClick={handleReset}
+                          className="text-xs text-gray-400 hover:text-gray-300 transition-colors"
                         >
-                          <div
-                            className="w-full h-full"
-                            style={{ backgroundColor: color }}
-                          />
+                          Reset
                         </button>
-                      ))}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-6 gap-2">
+                      {extractedColors
+                        .slice((currentPage - 1) * COLORS_PER_PAGE, currentPage * COLORS_PER_PAGE)
+                        .map((color, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleExtractedColorClick(color)}
+                            className="aspect-square rounded-lg ring-1 ring-dark-600 hover:ring-primary/50 transition-colors overflow-hidden group relative"
+                          >
+                            <div
+                              className="w-full h-full"
+                              style={{ backgroundColor: color }}
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <span className="text-[10px] font-mono text-white/80">{color.toUpperCase()}</span>
+                            </div>
+                          </button>
+                        ))}
                     </div>
                     <button
                       onClick={handleAddAll}
