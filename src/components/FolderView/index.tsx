@@ -250,7 +250,7 @@ const FolderView: FC<FolderViewProps> = ({
                   onDragLeave={(e) => {
                     e.currentTarget.classList.remove("border-primary-400")
                   }}
-                  onDrop={(e) => handleFolderDrop(null, e)}
+                  onDrop={(e: React.DragEvent) => handleFolderDrop(null, e)}
                   className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
                     selectedFolderId === null
                       ? "bg-primary/10 border-primary/20 text-primary-300"
@@ -269,7 +269,7 @@ const FolderView: FC<FolderViewProps> = ({
                   onReorder={onReorderFolders}
                   className="space-y-1"
                 >
-                  {folders.map((folder) => (
+                  {folders.map((folder: FolderType) => (
                     <Reorder.Item
                       key={folder.id}
                       value={folder}
@@ -278,10 +278,10 @@ const FolderView: FC<FolderViewProps> = ({
                     >
                       <button
                         draggable
-                        onDragStart={(e) => handleFolderDragStart(e, folder.id)}
+                        onDragStart={(e: React.DragEvent) => handleFolderDragStart(e, folder.id)}
                         onDragEnd={handleFolderDragEnd}
-                        onClick={(e) => handleFolderClick(folder.id, e)}
-                        onContextMenu={(e) => {
+                        onClick={(e: React.MouseEvent) => handleFolderClick(folder.id, e)}
+                        onContextMenu={(e: React.MouseEvent) => {
                           e.preventDefault()
                           setContextMenu({
                             x: e.clientX,
@@ -449,17 +449,29 @@ const FolderView: FC<FolderViewProps> = ({
         </div>
       </div>
 
-      {contextMenu && (
-        <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          folder={contextMenu.folder}
-          paletteId={paletteId}
-          onClose={() => setContextMenu(null)}
-          onRename={() => setEditingFolderId(contextMenu.folder.id)}
-          onDelete={() => onDeleteFolder(contextMenu.folder.id)}
-        />
-      )}
+      <AnimatePresence>
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            folder={contextMenu.folder}
+            paletteId={paletteId}
+            colors={colors}
+            onClose={() => setContextMenu(null)}
+            onRename={() => {
+              setEditingFolderId(contextMenu.folder.id)
+              setContextMenu(null)
+            }}
+            onDelete={() => {
+              onDeleteFolder(contextMenu.folder.id)
+              setContextMenu(null)
+            }}
+            onUpdateColors={onUpdateColors}
+            onSelectColors={setSelectedColors}
+            selectedColors={selectedColors}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
