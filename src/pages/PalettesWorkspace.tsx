@@ -1,6 +1,5 @@
 import { FC, useState, useEffect, useRef } from 'react'
-import { Plus } from 'lucide-react'
-import { PaletteIcon } from 'lucide-react'
+import { Plus, PaletteIcon, ArrowDown, ArrowUp } from 'lucide-react'
 import Toast from '../components/Toast'
 import FolderView from '../components/FolderView'
 import { AddColorModal } from '../components/AddColorModal'
@@ -391,6 +390,26 @@ const PalettesWorkspace: FC = () => {
     setPalettes(newPalettes)
   }
 
+  const handleNextPalette = () => {
+    if (!currentPalette || palettes.length <= 1) return
+    const currentIndex = palettes.findIndex(p => p.id === currentPalette.id)
+    const nextIndex = (currentIndex + 1) % palettes.length
+    const nextPalette = palettes[nextIndex]
+    setCurrentPalette(nextPalette)
+    setPaletteName(nextPalette.name)
+    showNotification(`Switched to ${nextPalette.name}`)
+  }
+
+  const handlePreviousPalette = () => {
+    if (!currentPalette || palettes.length <= 1) return
+    const currentIndex = palettes.findIndex(p => p.id === currentPalette.id)
+    const previousIndex = (currentIndex - 1 + palettes.length) % palettes.length
+    const previousPalette = palettes[previousIndex]
+    setCurrentPalette(previousPalette)
+    setPaletteName(previousPalette.name)
+    showNotification(`Switched to ${previousPalette.name}`)
+  }
+
   const shortcuts = useShortcuts({
     "new-palette": {
       key: "n",
@@ -431,8 +450,37 @@ const PalettesWorkspace: FC = () => {
       altKey: true,
       description: "Share current folder",
       action: handleShareCurrentFolder
+    },
+    "nextPalette": {
+      key: "ArrowDown",
+      altKey: true,
+      description: "Switch to next palette",
+      action: handleNextPalette,
+      icon: ArrowDown
+    },
+    "previousPalette": {
+      key: "ArrowUp",
+      altKey: true,
+      description: "Switch to previous palette",
+      action: handlePreviousPalette,
+      icon: ArrowUp
     }
   })
+
+  useEffect(() => {
+    const handleKeyboardShortcuts = (event: KeyboardEvent) => {
+      if (event.altKey) {
+        if (event.key === "ArrowUp") {
+          handlePreviousPalette()
+        } else if (event.key === "ArrowDown") {
+          handleNextPalette()
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyboardShortcuts)
+    return () => window.removeEventListener("keydown", handleKeyboardShortcuts)
+  }, [palettes, currentPalette])
 
   return (
     <div className="min-h-screen h-screen overflow-hidden bg-dark-900 text-white relative">

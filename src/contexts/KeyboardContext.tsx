@@ -33,7 +33,7 @@ export const KeyboardProvider: FC<KeyboardProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement ||event.target instanceof HTMLTextAreaElement) {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return
       }
 

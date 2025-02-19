@@ -26,6 +26,7 @@ export const useShortcuts = (shortcuts: { [key: string]: KeyboardShortcut }) => 
       shift: shortcut.shiftKey || false,
       meta: shortcut.metaKey || false
     },
-    key: shortcut.key.toUpperCase()
+    key: shortcut.key.toUpperCase(),
+    icon: shortcut.icon
   }))
 } 
