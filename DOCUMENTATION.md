@@ -8,6 +8,7 @@
 ### Adding Colors
 - Click "Add Color" or press Alt + C
 - Paste HEX, RGB, or HSL values
+- Paste multiple colors at once
 - Upload an image to extract colors
 - Drag colors between folders
 
@@ -23,29 +24,40 @@ HSL: hsl(14, 100%, 60%)
 - Drag colors to folders
 - Filter by color category
 - Sort by dragging
+- Auto-name colors in folders
+- Select multiple colors for batch operations
+- Use folder context menu for advanced operations
 
 ## Keyboard Controls
 
-### Palette Actions
+### Palette Navigation
+- Alt + ↑: Previous palette
+- Alt + ↓: Next palette
 - Alt + N: New palette
 - Alt + R: Rename palette
 - Alt + B: Show/hide sidebar
-- Alt + E: Export folders
-- Alt + S: Share folder
 - Alt + C: Add color
 
-### Color Actions
-- Copy: Click color value
-- Move: Drag and drop
-- Delete: Click X button
-- Rename: Click pencil icon
+### Folder Actions
+- Alt + E: Export folders
+- Alt + S: Share current folder
+- Context menu for batch operations
+- Auto-name colors in folder
+- Select/unselect all colors
 
 ## Sharing
 
 ### Export Options
 - Export as JSON
-- Share as image
-- Copy color values
+- Share folders as images
+- Copy individual or multiple color values
+- Export folder structures with colors
+
+### Organization
+- Reorder palettes by dragging
+- Reorder folders by dragging
+- Move folders between palettes
+- Create folder hierarchies
 
 ## Storage
 
