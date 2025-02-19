@@ -9,9 +9,11 @@ import { generateColorName } from '../utils/colorNaming'
 import { useShortcuts } from '../hooks/useShortcuts'
 import { useNavigate } from 'react-router-dom'
 
-const STORAGE_KEY = 'snowpalette-workspace'
-const SELECTED_PALETTE_KEY = 'snowpalette-selected'
-const SELECTED_FOLDER_KEY = 'snowpalette-selected-folder'
+const STORAGE_KEY = "snowpalette-workspace"
+const SELECTED_PALETTE_KEY = "snowpalette-selected"
+const SELECTED_FOLDER_KEY = "snowpalette-selected-folder"
+
+const getFolderStorageKey = (paletteId: string) => `${SELECTED_FOLDER_KEY}-${paletteId}`
 
 const PalettesWorkspace: FC = () => {
   const [showSidebar, setShowSidebar] = useState(false)
@@ -50,9 +52,11 @@ const PalettesWorkspace: FC = () => {
   const [showColorInput, setShowColorInput] = useState(false)
   const newColor = "#000000"
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(() => {
-    const savedFolderId = localStorage.getItem(SELECTED_FOLDER_KEY)
-    if (savedFolderId && currentPalette?.folders.some(f => f.id === savedFolderId)) {
-      return savedFolderId
+    if (currentPalette) {
+      const savedFolderId = localStorage.getItem(getFolderStorageKey(currentPalette.id))
+      if (savedFolderId && currentPalette.folders.some(f => f.id === savedFolderId)) {
+        return savedFolderId
+      }
     }
     return null
   })
@@ -67,11 +71,19 @@ const PalettesWorkspace: FC = () => {
       
       setCurrentPalette(paletteToSelect)
       setPaletteName(paletteToSelect.name)
+
+      const savedFolderId = localStorage.getItem(getFolderStorageKey(paletteToSelect.id))
+      if (savedFolderId && paletteToSelect.folders.some(f => f.id === savedFolderId)) {
+        setSelectedFolderId(savedFolderId)
+        selectedFolderIdRef.current = savedFolderId
+      }
     } else if (palettes.length === 0) {
       setCurrentPalette(null)
       setPaletteName("")
+      setSelectedFolderId(null)
+      selectedFolderIdRef.current = null
     }
-  }, [palettes, currentPalette])
+  }, [palettes])
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(palettes))
@@ -81,20 +93,22 @@ const PalettesWorkspace: FC = () => {
     if (currentPalette) {
       localStorage.setItem(SELECTED_PALETTE_KEY, currentPalette.id)
       setPaletteName(currentPalette.name)
-
-      if (selectedFolderId && !currentPalette.folders.some(f => f.id === selectedFolderId)) {
-        setSelectedFolderId(null)
+      
+      const savedFolderId = localStorage.getItem(getFolderStorageKey(currentPalette.id))
+      if (savedFolderId && currentPalette.folders.some(f => f.id === savedFolderId)) {
+        setSelectedFolderId(savedFolderId)
+        selectedFolderIdRef.current = savedFolderId
       }
     }
-  }, [currentPalette, selectedFolderId])
+  }, [currentPalette])
 
   useEffect(() => {
-    if (selectedFolderId) {
-      localStorage.setItem(SELECTED_FOLDER_KEY, selectedFolderId)
-    } else {
-      localStorage.removeItem(SELECTED_FOLDER_KEY)
+    if (currentPalette && selectedFolderId) {
+      localStorage.setItem(getFolderStorageKey(currentPalette.id), selectedFolderId)
+    } else if (currentPalette) {
+      localStorage.removeItem(getFolderStorageKey(currentPalette.id))
     }
-  }, [selectedFolderId])
+  }, [selectedFolderId, currentPalette])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -343,13 +357,16 @@ const PalettesWorkspace: FC = () => {
   }
 
   const handleFolderSelect = (folderId: string | null) => {
-    selectedFolderIdRef.current = folderId
     setSelectedFolderId(folderId)
+    selectedFolderIdRef.current = folderId
+    if (currentPalette) {
+      if (folderId) {
+        localStorage.setItem(getFolderStorageKey(currentPalette.id), folderId)
+      } else {
+        localStorage.removeItem(getFolderStorageKey(currentPalette.id))
+      }
+    }
   }
-
-  useEffect(() => {
-    selectedFolderIdRef.current = selectedFolderId
-  }, [selectedFolderId, currentPalette])
 
   const handleMoveFolders = (folderIds: string[], targetPaletteId: string) => {
     if (!currentPalette || currentPalette.id === targetPaletteId) return
