@@ -8,6 +8,7 @@ import ColorCard from './ColorCard'
 import ContextMenu from './ContextMenu'
 import Toast from '../Toast'
 import CategoryManager from "./CategoryManager"
+import { useDragControls } from 'framer-motion'
 
 interface FolderViewProps {
   colors: ColorItem[]
@@ -33,7 +34,8 @@ const FolderView: FC<FolderViewProps> = ({
   onDeleteColor,
   onFolderSelect,
   selectedFolderId,
-  onReorderFolders
+  onReorderFolders,
+  onMoveFolders
 }) => {
   const [categoryFilter, setCategoryFilter] = useState<ColorCategory | null>(null)
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; folder: FolderType } | null>(null)
@@ -48,6 +50,7 @@ const FolderView: FC<FolderViewProps> = ({
   const [showCategoryManager, setShowCategoryManager] = useState(false)
   const categoryManagerRef = useRef<HTMLDivElement>(null)
   const [selectedFolders, setSelectedFolders] = useState<string[]>([])
+  const dragControls = useDragControls()
 
   useEffect(() => {
     setSelectedFolders([])
@@ -137,16 +140,29 @@ const FolderView: FC<FolderViewProps> = ({
 
   const handleFolderDrop = (folderId: string | null, e: React.DragEvent) => {
     e.preventDefault()
-    e.currentTarget.classList.remove('border-primary-400')
+    e.currentTarget.classList.remove("border-primary-400")
     
-    const colorId = e.dataTransfer.getData('text/plain')
-    if (!colorId) return
+    const colorId = e.dataTransfer.getData("text/plain")
+    if (colorId) {
+      const newColors = colors.map(color => 
+        color.id === colorId ? { ...color, folderId } : color
+      )
+      onUpdateColors(newColors)
+      setIsReordering(false)
+      return
+    }
 
-    const newColors = colors.map(color => 
-      color.id === colorId ? { ...color, folderId } : color
-    )
-    onUpdateColors(newColors)
-    setIsReordering(false)
+    try {
+      const data = JSON.parse(e.dataTransfer.getData("application/json"))
+      if (data.type === "folders" && data.sourcePaletteId !== paletteId) {
+        onMoveFolders?.(data.folderIds, paletteId)
+        setTimeout(() => {
+          setIsReordering(false)
+        }, 300)
+      }
+    } catch (err) {
+      console.error("Failed to parse drag data:", err)
+    }
   }
 
   const handleColorSelect = (colorId: string) => {
@@ -185,13 +201,19 @@ const FolderView: FC<FolderViewProps> = ({
   }
 
   const handleFolderDragStart = (e: React.DragEvent, folderId: string) => {
+    if (selectedFolders.length === 0) {
+      e.preventDefault()
+      return
+    }
+
     if (!selectedFolders.includes(folderId)) {
-      setSelectedFolders([folderId])
+      e.preventDefault()
+      return
     }
 
     const dragPreview = document.createElement("div")
     dragPreview.className = "fixed top-0 left-0 bg-dark-800/95 border border-primary/20 rounded-xl px-3 py-2 text-primary-300 pointer-events-none"
-    dragPreview.innerHTML = `Moving ${selectedFolders.length || 1} folder${selectedFolders.length !== 1 ? "s" : ""}`
+    dragPreview.innerHTML = `Moving ${selectedFolders.length} folder${selectedFolders.length !== 1 ? "s" : ""}`
     dragPreview.style.position = "absolute"
     dragPreview.style.top = "-1000px"
     document.body.appendChild(dragPreview)
@@ -199,7 +221,7 @@ const FolderView: FC<FolderViewProps> = ({
 
     const dragData = {
       type: "folders",
-      folderIds: selectedFolders.length ? selectedFolders : [folderId],
+      folderIds: selectedFolders,
       sourcePaletteId: paletteId
     }
     e.dataTransfer.setData("application/json", JSON.stringify(dragData))
@@ -255,11 +277,7 @@ const FolderView: FC<FolderViewProps> = ({
                     e.currentTarget.classList.remove("border-primary-400")
                   }}
                   onDrop={(e: React.DragEvent) => handleFolderDrop(null, e)}
-                  className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
-                    selectedFolderId === null
-                      ? "bg-primary/10 border-primary/20 text-primary-300"
-                      : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
-                  }`}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
                 >
                   <Folder size={14} className="shrink-0" />
                   <span className="text-sm">Unorganized</span>
@@ -267,66 +285,87 @@ const FolderView: FC<FolderViewProps> = ({
                     {colors.filter(c => c.folderId === null).length}
                   </span>
                 </button>
+
                 <Reorder.Group 
                   axis="y" 
                   values={folders} 
                   onReorder={onReorderFolders}
                   className="space-y-1"
                 >
-                  {folders.map((folder: FolderType) => (
+                  {folders.map((folder) => (
                     <Reorder.Item
                       key={folder.id}
                       value={folder}
                       className="touch-none"
-                      dragListener={false}
+                      dragListener={!selectedFolders.length}
+                      dragControls={dragControls}
                     >
-                      <button
-                        draggable
+                      <div
+                        draggable={selectedFolders.length > 0}
                         onDragStart={(e: React.DragEvent) => handleFolderDragStart(e, folder.id)}
                         onDragEnd={handleFolderDragEnd}
                         onClick={(e: React.MouseEvent) => handleFolderClick(folder.id, e)}
                         onContextMenu={(e: React.MouseEvent) => {
                           e.preventDefault()
-                          setContextMenu({
-                            x: e.clientX,
-                            y: e.clientY,
-                            folder
-                          })
+                          setContextMenu({ x: e.clientX, y: e.clientY, folder })
                         }}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none cursor-move ${
+                        onDragOver={(e) => {
+                          e.preventDefault()
+                          if (selectedFolders.length > 0) {
+                            e.currentTarget.classList.add("border-primary-400", "bg-primary/5")
+                          }
+                        }}
+                        onDragLeave={(e) => {
+                          if (selectedFolders.length > 0) {
+                            e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
+                          }
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault()
+                          e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
+                          if (selectedFolders.length > 0) {
+                            handleFolderDrop(folder.id, e)
+                          }
+                        }}
+                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
                           selectedFolders.includes(folder.id)
-                            ? "bg-primary/20 border-primary/30 text-primary-300"
+                            ? "bg-primary/20 border-primary/30 text-primary-300 cursor-grab"
                             : selectedFolderId === folder.id
-                              ? "bg-primary/10 border-primary/20 text-primary-300"
-                              : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
+                              ? "bg-primary/10 border-primary/20 text-primary-300 cursor-grab"
+                              : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50 cursor-grab"
                         }`}
                       >
                         <Folder size={14} className="shrink-0" />
-                        {editingFolderId === folder.id ? (
-                          <input
-                            type="text"
-                            value={folder.name}
-                            onChange={(e) => onUpdateFolderName(folder.id, e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
-                            onBlur={() => setEditingFolderId(null)}
-                            onKeyDown={(e) => {
-                              e.stopPropagation()
-                              if (e.key === "Enter") {
-                                e.preventDefault()
+                        <div className="flex-1 flex items-center gap-2 truncate">
+                          {editingFolderId === folder.id ? (
+                            <input
+                              type="text"
+                              defaultValue={folder.name}
+                              autoFocus
+                              onBlur={(e) => {
+                                onUpdateFolderName(folder.id, e.target.value)
                                 setEditingFolderId(null)
-                              }
-                            }}
-                            maxLength={16}
-                            autoFocus
-                            className="flex-1 bg-transparent border-none text-sm focus:outline-none focus:ring-0 text-left select-text"
-                          />
-                        ) : (
-                          <span className="flex-1 text-sm truncate text-left">{folder.name}</span>
-                        )}
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  onUpdateFolderName(folder.id, e.currentTarget.value)
+                                  setEditingFolderId(null)
+                                }
+                                if (e.key === "Escape") {
+                                  setEditingFolderId(null)
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex-1 bg-transparent outline-none text-sm"
+                            />
+                          ) : (
+                            <span className="text-sm truncate">{folder.name}</span>
+                          )}
+                        </div>
                         <span className="text-xs text-gray-400 shrink-0">
                           {colors.filter(c => c.folderId === folder.id).length}
                         </span>
-                      </button>
+                      </div>
                     </Reorder.Item>
                   ))}
                 </Reorder.Group>

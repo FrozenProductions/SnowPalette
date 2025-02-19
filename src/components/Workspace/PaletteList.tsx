@@ -1,7 +1,7 @@
 import { FC, useRef, useEffect, useState } from 'react'
-import { Plus, X, MoreVertical, Palette as PaletteIcon, GripVertical } from 'lucide-react'
+import { Plus, X, MoreVertical, Palette as PaletteIcon } from 'lucide-react'
 import { Palette, PaletteReorderEvent } from '../../types/colors'
-import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion'
+import { motion, AnimatePresence, Reorder } from 'framer-motion'
 
 interface PaletteListProps {
   palettes: Palette[]
@@ -174,7 +174,7 @@ const PaletteList: FC<PaletteListProps> = ({
                     <Reorder.Item
                       key={palette.id}
                       value={palette}
-                      className={`group w-full px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                      className={`group w-full px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-2 cursor-grab active:cursor-grabbing ${
                         currentPalette?.id === palette.id
                           ? "bg-primary/10 text-primary-300 shadow-sm"
                           : "text-gray-400 hover:text-white hover:bg-dark-700/30"
@@ -186,15 +186,26 @@ const PaletteList: FC<PaletteListProps> = ({
                         cursor: "grabbing"
                       }}
                       transition={{ duration: 0.2 }}
+                      onDragOver={(e: React.DragEvent) => {
+                        e.preventDefault()
+                        if (isDraggingFolders) {
+                          e.currentTarget.classList.add("border-primary-400", "bg-primary/5")
+                        }
+                      }}
+                      onDragLeave={(e: React.DragEvent) => {
+                        if (isDraggingFolders) {
+                          e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
+                        }
+                      }}
+                      onDrop={(e: React.DragEvent) => {
+                        e.preventDefault()
+                        e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
+                        handleDrop(e, palette.id)
+                      }}
                     >
-                      <div 
-                        className="cursor-grab active:cursor-grabbing p-1 -ml-2 text-gray-500 hover:text-gray-300"
-                      >
-                        <GripVertical size={14} />
-                      </div>
                       <button
                         onClick={() => onSelectPalette(palette)}
-                        className="flex-1 text-left truncate"
+                        className="flex-1 text-left truncate cursor-grab"
                       >
                         {palette.name}
                       </button>
