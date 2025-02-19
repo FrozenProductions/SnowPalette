@@ -1,7 +1,7 @@
 import { FC, useRef, useEffect, useState } from 'react'
-import { Plus, X, MoreVertical, Palette as PaletteIcon } from 'lucide-react'
-import { Palette } from '../../types/colors'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Plus, X, MoreVertical, Palette as PaletteIcon, GripVertical } from 'lucide-react'
+import { Palette, PaletteReorderEvent } from '../../types/colors'
+import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion'
 
 interface PaletteListProps {
   palettes: Palette[]
@@ -12,6 +12,7 @@ interface PaletteListProps {
   onDeletePalette: (paletteId: string) => void
   onToggleSidebar: () => void
   onMoveFolders?: (folderIds: string[], targetPaletteId: string) => void
+  onReorderPalettes?: (event: PaletteReorderEvent) => void
 }
 
 const PaletteList: FC<PaletteListProps> = ({
@@ -22,11 +23,17 @@ const PaletteList: FC<PaletteListProps> = ({
   onSelectPalette,
   onDeletePalette,
   onToggleSidebar,
-  onMoveFolders
+  onMoveFolders,
+  onReorderPalettes
 }) => {
   const sidebarRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [isDraggingFolders, setIsDraggingFolders] = useState(false)
+  const [orderedPalettes, setOrderedPalettes] = useState(palettes)
+
+  useEffect(() => {
+    setOrderedPalettes(palettes)
+  }, [palettes])
 
   useEffect(() => {
     const handleFolderDragStart = () => {
@@ -83,6 +90,19 @@ const PaletteList: FC<PaletteListProps> = ({
       }
     } catch (err) {
       console.error("Failed to parse drag data:", err)
+    }
+  }
+
+  const handleReorder = (newOrder: Palette[]) => {
+    setOrderedPalettes(newOrder)
+    const sourceIndex = palettes.findIndex(p => p.id === newOrder[0].id)
+    const destinationIndex = 0
+    
+    if (sourceIndex !== destinationIndex) {
+      onReorderPalettes?.({
+        sourceIndex,
+        destinationIndex
+      })
     }
   }
 
@@ -143,57 +163,55 @@ const PaletteList: FC<PaletteListProps> = ({
                   <Plus size={14} />
                 </button>
               </div>
-              <div className="p-1.5 max-h-[calc(100vh-24rem)] overflow-y-auto space-y-0.5">
-                {palettes.map(palette => (
-                  <motion.button
-                    key={palette.id}
-                    onClick={() => onSelectPalette(palette)}
-                    onDragOver={(e) => {
-                      e.preventDefault()
-                      if (palette.id === currentPalette?.id) return
-                      e.currentTarget.classList.add("border-primary-400", "bg-primary/5")
-                      e.currentTarget.parentElement?.parentElement?.classList.remove("border-primary-400", "bg-primary/5")
-                    }}
-                    onDragLeave={(e) => {
-                      e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
-                      const rect = e.currentTarget.getBoundingClientRect()
-                      const isLeaving = 
-                        e.clientX < rect.left ||
-                        e.clientX >= rect.right ||
-                        e.clientY < rect.top ||
-                        e.clientY >= rect.bottom
-                      if (isLeaving) {
-                        e.currentTarget.parentElement?.parentElement?.classList.add("border-primary-400", "bg-primary/5")
-                      }
-                    }}
-                    onDrop={(e) => {
-                      e.preventDefault()
-                      e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
-                      if (palette.id === currentPalette?.id) return
-                      handleDrop(e, palette.id)
-                    }}
-                    className={`group w-full px-3 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2 ${
-                      currentPalette?.id === palette.id
-                        ? "bg-primary/10 text-primary-300 shadow-sm"
-                        : "text-gray-400 hover:text-white hover:bg-dark-700/30"
-                    }`}
-                    whileHover={{ x: 2 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <span className="flex-1 text-left truncate">{palette.name}</span>
-                    <motion.div
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onDeletePalette(palette.id)
+              <Reorder.Group 
+                axis="y" 
+                values={orderedPalettes} 
+                onReorder={handleReorder}
+                className="p-1.5 max-h-[calc(100vh-24rem)] overflow-y-auto space-y-0.5"
+              >
+                <AnimatePresence>
+                  {orderedPalettes.map((palette) => (
+                    <Reorder.Item
+                      key={palette.id}
+                      value={palette}
+                      className={`group w-full px-3 py-1.5 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                        currentPalette?.id === palette.id
+                          ? "bg-primary/10 text-primary-300 shadow-sm"
+                          : "text-gray-400 hover:text-white hover:bg-dark-700/30"
+                      }`}
+                      whileHover={{ x: 2 }}
+                      whileDrag={{ 
+                        scale: 1.02,
+                        boxShadow: "0 5px 15px rgba(0,0,0,0.3)",
+                        cursor: "grabbing"
                       }}
-                      className="w-5 h-5 -mr-1 rounded-md hover:bg-dark-700/50 text-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
-                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      <X size={12} />
-                    </motion.div>
-                  </motion.button>
-                ))}
-              </div>
+                      <div 
+                        className="cursor-grab active:cursor-grabbing p-1 -ml-2 text-gray-500 hover:text-gray-300"
+                      >
+                        <GripVertical size={14} />
+                      </div>
+                      <button
+                        onClick={() => onSelectPalette(palette)}
+                        className="flex-1 text-left truncate"
+                      >
+                        {palette.name}
+                      </button>
+                      <motion.div
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onDeletePalette(palette.id)
+                        }}
+                        className="w-5 h-5 -mr-1 rounded-md hover:bg-dark-700/50 text-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
+                        whileHover={{ scale: 1.1 }}
+                      >
+                        <X size={12} />
+                      </motion.div>
+                    </Reorder.Item>
+                  ))}
+                </AnimatePresence>
+              </Reorder.Group>
             </div>
           </motion.div>
         )}

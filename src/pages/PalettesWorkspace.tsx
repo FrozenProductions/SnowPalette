@@ -4,7 +4,7 @@ import { PaletteIcon } from 'lucide-react'
 import Toast from '../components/Toast'
 import FolderView from '../components/FolderView'
 import { AddColorModal } from '../components/AddColorModal'
-import { ColorItem, Folder as FolderType, Palette as PaletteType, ColorCategory } from '../types/colors'
+import { ColorItem, Folder as FolderType, Palette as PaletteType, ColorCategory, PaletteReorderEvent } from '../types/colors'
 import { Header, PaletteList, PaletteActions, PaletteNameEditor } from '../components/Workspace'
 import { generateColorName } from '../utils/colorNaming'
 import { useShortcuts } from '../hooks/useShortcuts'
@@ -384,6 +384,13 @@ const PalettesWorkspace: FC = () => {
     }
   }
 
+  const handleReorderPalettes = (event: PaletteReorderEvent) => {
+    const newPalettes = [...palettes]
+    const [movedPalette] = newPalettes.splice(event.sourceIndex, 1)
+    newPalettes.splice(event.destinationIndex, 0, movedPalette)
+    setPalettes(newPalettes)
+  }
+
   const shortcuts = useShortcuts({
     "new-palette": {
       key: "n",
@@ -521,6 +528,7 @@ const PalettesWorkspace: FC = () => {
         onDeletePalette={handleDeletePalette}
         onToggleSidebar={() => setShowSidebar(prev => !prev)}
         onMoveFolders={handleMoveFolders}
+        onReorderPalettes={handleReorderPalettes}
       />
 
       <AddColorModal

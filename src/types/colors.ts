@@ -20,6 +20,12 @@ export interface Palette {
   name: string
   colors: ColorItem[]
   folders: Folder[]
+  order?: number
+}
+
+export type PaletteReorderEvent = {
+  sourceIndex: number
+  destinationIndex: number
 }
 
 export type CategoryManagerProps = {
