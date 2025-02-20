@@ -463,50 +463,31 @@ const FolderView: FC<FolderViewProps> = ({
         </div>
 
         <div className="relative flex-1 min-h-0 overflow-y-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${paletteId}-${selectedFolderId || "unorganized"}`}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={{
-                visible: {
-                  transition: {
-                    staggerChildren: 0.03
-                  }
-                }
-              }}
-            >
-              <Reorder.Group
-                axis="y"
-                values={finalFilteredColors}
-                onReorder={handleReorder}
-                className="space-y-2"
+          <Reorder.Group
+            axis="y"
+            values={finalFilteredColors}
+            onReorder={handleReorder}
+            className="space-y-2"
+          >
+            {finalFilteredColors.map((color) => (
+              <Reorder.Item
+                key={color.id}
+                value={color}
+                className="touch-none"
               >
-                {finalFilteredColors.map((color) => (
-                  <motion.div
-                    key={color.id}
-                    variants={{
-                      hidden: { opacity: 0, y: 10 },
-                      visible: { opacity: 1, y: 0 }
-                    }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <ColorCard
-                      color={color}
-                      onDelete={() => onDeleteColor(color.id)}
-                      onRename={(newName) => handleRenameColor(color.id, newName)}
-                      onDragStart={handleDragStart}
-                      onDragEnd={handleDragEnd}
-                      isReordering={isReordering}
-                      isSelected={selectedColors.includes(color.id)}
-                      onSelect={() => handleColorSelect(color.id)}
-                    />
-                  </motion.div>
-                ))}
-              </Reorder.Group>
-            </motion.div>
-          </AnimatePresence>
+                <ColorCard
+                  color={color}
+                  onDelete={() => onDeleteColor(color.id)}
+                  onRename={(newName) => handleRenameColor(color.id, newName)}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  isReordering={isReordering}
+                  isSelected={selectedColors.includes(color.id)}
+                  onSelect={() => handleColorSelect(color.id)}
+                />
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
         </div>
       </div>
 
