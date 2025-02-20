@@ -30,6 +30,7 @@ const PaletteList: FC<PaletteListProps> = ({
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [isDraggingFolders, setIsDraggingFolders] = useState(false)
   const [orderedPalettes, setOrderedPalettes] = useState(palettes)
+  const [dropOccurred, setDropOccurred] = useState(false)
 
   useEffect(() => {
     setOrderedPalettes(palettes)
@@ -38,11 +39,15 @@ const PaletteList: FC<PaletteListProps> = ({
   useEffect(() => {
     const handleFolderDragStart = () => {
       setIsDraggingFolders(true)
+      setDropOccurred(false)
       onToggleSidebar()
     }
 
     const handleFolderDragEnd = () => {
       setIsDraggingFolders(false)
+      if (!dropOccurred) {
+        onToggleSidebar()
+      }
     }
 
     window.addEventListener("folderDragStart", handleFolderDragStart)
@@ -52,7 +57,7 @@ const PaletteList: FC<PaletteListProps> = ({
       window.removeEventListener("folderDragStart", handleFolderDragStart)
       window.removeEventListener("folderDragEnd", handleFolderDragEnd)
     }
-  }, [onToggleSidebar])
+  }, [onToggleSidebar, dropOccurred])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -83,6 +88,7 @@ const PaletteList: FC<PaletteListProps> = ({
       const data = JSON.parse(e.dataTransfer.getData("application/json"))
       if (data.type === "folders" && data.sourcePaletteId !== targetPaletteId) {
         onMoveFolders?.(data.folderIds, targetPaletteId)
+        setDropOccurred(true)
         setTimeout(() => {
           setIsDraggingFolders(false)
           onToggleSidebar()
