@@ -148,11 +148,24 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
   const [rgb, setRgb] = useState<RGB>(hexToRgb(initialColor) || { r: 0, g: 0, b: 0 })
   const [hsl, setHsl] = useState<HSL>(rgbToHsl(rgb.r, rgb.g, rgb.b))
   const [extractedColors, setExtractedColors] = useState<string[]>([])
+  const [selectedColors, setSelectedColors] = useState<Set<string>>(new Set())
   const [isExtracting, setIsExtracting] = useState(false)
   const [numColors, setNumColors] = useState(6)
   const [currentPage, setCurrentPage] = useState(1)
   const COLORS_PER_PAGE = 12
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedColors(new Set())
+    }
+  }, [isOpen])
+
+  useEffect(() => {
+    if (isExtracting) {
+      setSelectedColors(new Set(extractedColors))
+    }
+  }, [isExtracting])
 
   useEffect(() => {
     if (!isOpen) return
@@ -253,15 +266,21 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
   }
 
   const handleExtractedColorClick = (color: string) => {
-    const newRgb = hexToRgb(color) || { r: 0, g: 0, b: 0 }
-    setHex(color)
-    setRgb(newRgb)
-    setHsl(rgbToHsl(newRgb.r, newRgb.g, newRgb.b))
+    setSelectedColors(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(color)) {
+        newSet.delete(color)
+      } else {
+        newSet.add(color)
+      }
+      return newSet
+    })
   }
 
   const handleAddAll = () => {
-    onAdd(extractedColors)
+    onAdd(Array.from(selectedColors))
     setExtractedColors([])
+    setSelectedColors(new Set())
     onClose()
   }
 
@@ -456,26 +475,40 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
                       {extractedColors
                         .slice((currentPage - 1) * COLORS_PER_PAGE, currentPage * COLORS_PER_PAGE)
                         .map((color, index) => (
-                          <button
+                          <motion.button
                             key={index}
                             onClick={() => handleExtractedColorClick(color)}
-                            className="aspect-square rounded-lg ring-1 ring-dark-600 hover:ring-primary/50 transition-colors overflow-hidden group relative"
+                            className={`aspect-square rounded-lg overflow-hidden group relative ${
+                              !selectedColors.has(color) ? "ring-1 ring-dark-600" : ""
+                            }`}
+                            whileTap={{ scale: 0.92 }}
+                            transition={{ duration: 0.1, ease: "easeOut" }}
                           >
                             <div
                               className="w-full h-full"
                               style={{ backgroundColor: color }}
                             />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <span className="text-[10px] font-mono text-white/80">{color.toUpperCase()}</span>
-                            </div>
-                          </button>
+                            {!selectedColors.has(color) && (
+                              <>
+                                <div className="absolute inset-0 bg-black/40" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <X size={16} className="text-red-400" strokeWidth={2.5} />
+                                </div>
+                              </>
+                            )}
+                            {selectedColors.has(color) && (
+                              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center transition-opacity duration-200">
+                                <span className="text-xs font-mono text-white/90">{color.toUpperCase()}</span>
+                              </div>
+                            )}
+                          </motion.button>
                         ))}
                     </div>
                     <button
                       onClick={handleAddAll}
                       className="w-full px-4 py-2 bg-primary/10 text-sm text-primary-300 rounded-lg border border-primary/20 hover:bg-primary/20 transition-colors"
                     >
-                      Add All Colors
+                      Add {selectedColors.size} Selected Colors
                     </button>
                   </div>
                 )}
