@@ -311,21 +311,15 @@ const FolderView: FC<FolderViewProps> = ({
                         }}
                         onDragOver={(e) => {
                           e.preventDefault()
-                          if (selectedFolders.length > 0) {
-                            e.currentTarget.classList.add("border-primary-400", "bg-primary/5")
-                          }
+                          e.currentTarget.classList.add("border-primary-400", "bg-primary/5")
                         }}
                         onDragLeave={(e) => {
-                          if (selectedFolders.length > 0) {
-                            e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
-                          }
+                          e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
                         }}
                         onDrop={(e) => {
                           e.preventDefault()
                           e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
-                          if (selectedFolders.length > 0) {
-                            handleFolderDrop(folder.id, e)
-                          }
+                          handleFolderDrop(folder.id, e)
                         }}
                         className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
                           selectedFolders.includes(folder.id)
