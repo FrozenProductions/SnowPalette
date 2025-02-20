@@ -11,7 +11,8 @@ const ColorCard: FC<ColorCardProps> = ({
   onDragEnd,
   isReordering,
   isSelected,
-  onSelect
+  onSelect,
+  selectedColors
 }) => {
   const [isRenamingColor, setIsRenamingColor] = useState(false)
   const [colorName, setColorName] = useState(color.name)
@@ -80,9 +81,25 @@ const ColorCard: FC<ColorCardProps> = ({
             draggable
             onDragStart={(e) => {
               e.stopPropagation()
-              e.dataTransfer.effectAllowed = 'move'
-              e.dataTransfer.setData('text/plain', color.id)
+              e.dataTransfer.effectAllowed = "move"
+              const colorIds = isSelected ? selectedColors : [color.id]
+
+              const dragPreview = document.createElement("div")
+              dragPreview.className = "fixed top-0 left-0 bg-dark-800/95 border border-primary/20 rounded-xl px-3 py-2 text-primary-300 pointer-events-none"
+              dragPreview.innerHTML = `Moving ${colorIds.length} color${colorIds.length !== 1 ? "s" : ""}`
+              dragPreview.style.position = "absolute"
+              dragPreview.style.top = "-1000px"
+              document.body.appendChild(dragPreview)
+              e.dataTransfer.setDragImage(dragPreview, 0, 0)
+
+              const dragData = {
+                type: "colors",
+                colorIds
+              }
+              e.dataTransfer.setData("application/json", JSON.stringify(dragData))
               onDragStart()
+
+              requestAnimationFrame(() => document.body.removeChild(dragPreview))
             }}
             onDragEnd={(e) => {
               e.stopPropagation()

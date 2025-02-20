@@ -44,7 +44,8 @@ export type ColorCardProps = {
   isReordering: boolean
   isSelected: boolean
   onSelect: () => void
-} 
+  selectedColors: string[]
+}
 
 export type ColorRange = {
     name: string

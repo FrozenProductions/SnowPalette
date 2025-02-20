@@ -142,18 +142,17 @@ const FolderView: FC<FolderViewProps> = ({
     e.preventDefault()
     e.currentTarget.classList.remove("border-primary-400")
     
-    const colorId = e.dataTransfer.getData("text/plain")
-    if (colorId) {
-      const newColors = colors.map(color => 
-        color.id === colorId ? { ...color, folderId } : color
-      )
-      onUpdateColors(newColors)
-      setIsReordering(false)
-      return
-    }
-
     try {
       const data = JSON.parse(e.dataTransfer.getData("application/json"))
+      if (data.type === "colors") {
+        const newColors = colors.map(color => 
+          data.colorIds.includes(color.id) ? { ...color, folderId } : color
+        )
+        onUpdateColors(newColors)
+        setIsReordering(false)
+        return
+      }
+
       if (data.type === "folders" && data.sourcePaletteId !== paletteId) {
         onMoveFolders?.(data.folderIds, paletteId)
         setTimeout(() => {
@@ -161,7 +160,14 @@ const FolderView: FC<FolderViewProps> = ({
         }, 300)
       }
     } catch (err) {
-      console.error("Failed to parse drag data:", err)
+      const colorId = e.dataTransfer.getData("text/plain")
+      if (colorId) {
+        const newColors = colors.map(color => 
+          color.id === colorId ? { ...color, folderId } : color
+        )
+        onUpdateColors(newColors)
+        setIsReordering(false)
+      }
     }
   }
 
@@ -484,6 +490,7 @@ const FolderView: FC<FolderViewProps> = ({
                   isReordering={isReordering}
                   isSelected={selectedColors.includes(color.id)}
                   onSelect={() => handleColorSelect(color.id)}
+                  selectedColors={selectedColors}
                 />
               </Reorder.Item>
             ))}
