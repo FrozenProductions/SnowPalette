@@ -6,6 +6,11 @@ const DEFAULT_OPTIONS: ExtractColorsOptions = {
   targetColors: 6
 }
 
+/**
+ * Converts an RGB color to a LAB color.
+ * @param rgb - The RGB color to convert.
+ * @returns The LAB color.
+ */
 const rgbToLab = (rgb: RGB): LAB => {
   let r = rgb.r / 255
   let g = rgb.g / 255
@@ -42,6 +47,11 @@ const rgbToLab = (rgb: RGB): LAB => {
   }
 }
 
+/**
+ * Converts a LAB color to an RGB color.
+ * @param lab - The LAB color to convert.
+ * @returns The RGB color.
+ */
 const labToRgb = (lab: LAB): RGB => {
   let y = (lab.l + 16) / 116
   let x = lab.a / 500 + y
@@ -78,12 +88,23 @@ const labToRgb = (lab: LAB): RGB => {
   }
 }
 
+/**
+ * Converts an RGB color to a hex color.
+ * @param rgb - The RGB color to convert.
+ * @returns The hex color.
+ */
 const rgbToHex = (rgb: RGB): string => {
   return "#" + [rgb.r, rgb.g, rgb.b]
     .map(x => x.toString(16).padStart(2, "0"))
     .join("")
 }
 
+/**
+ * Calculates the Euclidean distance between two LAB colors.
+ * @param a - The first LAB color.
+ * @param b - The second LAB color.
+ * @returns The distance between the two colors.
+ */
 const distance = (a: LAB, b: LAB): number => {
   const dl = a.l - b.l
   const da = a.a - b.a
@@ -91,6 +112,11 @@ const distance = (a: LAB, b: LAB): number => {
   return Math.sqrt(dl * dl + da * da + db * db)
 }
 
+/**
+ * Calculates the centroid of a set of LAB colors.
+ * @param points - The LAB colors to calculate the centroid for.
+ * @returns The centroid of the colors.
+ */
 const calculateCentroid = (points: LAB[]): LAB => {
   const sum = points.reduce((acc, point) => ({
     l: acc.l + point.l,
@@ -105,6 +131,13 @@ const calculateCentroid = (points: LAB[]): LAB => {
   }
 }
 
+/**
+ * Performs k-means clustering on a set of LAB colors.
+ * @param points - The LAB colors to cluster.
+ * @param k - The number of clusters to create.
+ * @param maxIterations - The maximum number of iterations to perform.
+ * @returns The clusters found by the k-means algorithm.
+ */
 const kMeans = (points: LAB[], k: number, maxIterations: number = 50): ColorCluster[] => {
   if (points.length === 0) return []
   if (points.length <= k) {
@@ -168,6 +201,12 @@ const kMeans = (points: LAB[], k: number, maxIterations: number = 50): ColorClus
     }))
 }
 
+/**
+ * Quantizes an image by extracting colors from the image data.
+ * @param pixels - The image data to extract colors from.
+ * @param options - The options for the color extraction.
+ * @returns The colors extracted from the image.
+ */
 const quantize = (pixels: Uint8ClampedArray, options: ExtractColorsOptions): string[] => {
   const points: LAB[] = []
   const seen: Set<string> = new Set()
@@ -200,6 +239,12 @@ const quantize = (pixels: Uint8ClampedArray, options: ExtractColorsOptions): str
   })
 }
 
+/**
+ * Extracts colors from an image file.
+ * @param imageFile - The image file to extract colors from.
+ * @param options - The options for the color extraction.
+ * @returns The colors extracted from the image.
+ */
 export const extractColors = async (
   imageFile: File,
   options: Partial<ExtractColorsOptions> = {}

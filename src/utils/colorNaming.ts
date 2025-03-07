@@ -175,6 +175,11 @@ const EARTH_TONES = [
   { name: "Taupe", hue: [30, 40], saturation: [10, 30], lightness: [50, 65] }
 ]
 
+/**
+ * Converts a hex color to an HSL color.
+ * @param hex - The hex color to convert.
+ * @returns The HSL color.
+ */
 const hexToHsl = (hex: string): [number, number, number] => {
   const cleanHex = hex.startsWith('#') ? hex.slice(1) : hex
   const fullHex = cleanHex.length === 3 
@@ -208,6 +213,11 @@ const hexToHsl = (hex: string): [number, number, number] => {
   ]
 }
 
+/**
+ * Gets the color range for a given hue.
+ * @param hue - The hue to get the color range for.
+ * @returns The color range.
+ */
 const getColorRange = (hue: number): ColorRange => {
   return COLOR_RANGES.find(range => {
     const [min, max] = range.hueRange
@@ -216,14 +226,31 @@ const getColorRange = (hue: number): ColorRange => {
   }) || COLOR_RANGES[0]
 }
 
+/**
+ * Gets the lightness description for a given lightness.
+ * @param lightness - The lightness to get the description for.
+ * @returns The lightness description.
+ */
 const getLightnessDescription = (lightness: number) => {
   return LIGHTNESS_TERMS.find(t => lightness >= t.range[0] && lightness < t.range[1]) || LIGHTNESS_TERMS[5]
 }
 
+/**
+ * Gets the saturation description for a given saturation.
+ * @param saturation - The saturation to get the description for.
+ * @returns The saturation description.
+ */
 const getSaturationDescription = (saturation: number) => {
   return SATURATION_TERMS.find(t => saturation >= t.range[0] && saturation < t.range[1]) || SATURATION_TERMS[4]
 }
 
+/**
+ * Checks if a color is a special color.
+ * @param hue - The hue of the color.
+ * @param saturation - The saturation of the color.
+ * @param lightness - The lightness of the color.
+ * @returns The name of the special color if found, otherwise null.
+ */
 const checkSpecialColor = (hue: number, saturation: number, lightness: number) => {
   const metallic = METALLIC_COLORS.find(m => {
     const [minH, maxH] = m.hue
@@ -248,10 +275,21 @@ const checkSpecialColor = (hue: number, saturation: number, lightness: number) =
   return null
 }
 
+/**
+ * Gets the intensity of a color.
+ * @param saturation - The saturation of the color.
+ * @param lightness - The lightness of the color.
+ * @returns The intensity of the color.
+ */
 const getColorIntensity = (saturation: number, lightness: number): number => {
   return (saturation * (1 - Math.abs(2 * lightness - 1))) / 100
 }
 
+/**
+ * Generates a name for a color.
+ * @param colorValue - The color to generate a name for.
+ * @returns The name of the color.
+ */
 export const generateColorName = (colorValue: ColorValue): string => {
   const [hue, saturation, lightness] = hexToHsl(colorValue)
   const intensity = getColorIntensity(saturation, lightness)

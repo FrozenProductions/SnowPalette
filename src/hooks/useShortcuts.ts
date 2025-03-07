@@ -2,6 +2,11 @@ import { useEffect } from "react"
 import { useKeyboard } from "../contexts/KeyboardContext"
 import { KeyboardShortcut } from "../types/keyboard"
 
+/**
+ * Custom hook to manage keyboard shortcuts.
+ * @param shortcuts - The shortcuts to manage.
+ * @returns An object containing the shortcuts.
+ */
 export const useShortcuts = (shortcuts: { [key: string]: KeyboardShortcut }) => {
   const { registerShortcut, unregisterShortcut } = useKeyboard()
 

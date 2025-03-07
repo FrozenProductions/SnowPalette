@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import { Palette } from '../types/colors'
 import { STORAGE_KEY, SELECTED_PALETTE_KEY } from '../constants/storage'
 
+/**
+ * Custom hook to manage palette storage.
+ * @returns An object containing the palettes, the current palette, and functions to set the palettes and current palette.
+ */
 const usePaletteStorage = () => {
   const [palettes, setPalettes] = useState<Palette[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
