@@ -176,9 +176,14 @@ const EARTH_TONES = [
 ]
 
 const hexToHsl = (hex: string): [number, number, number] => {
-  const r = parseInt(hex.slice(1, 3), 16) / 255
-  const g = parseInt(hex.slice(3, 5), 16) / 255
-  const b = parseInt(hex.slice(5, 7), 16) / 255
+  const cleanHex = hex.startsWith('#') ? hex.slice(1) : hex
+  const fullHex = cleanHex.length === 3 
+    ? cleanHex.split('').map(char => char + char).join('')
+    : cleanHex
+
+  const r = parseInt(fullHex.slice(0, 2), 16) / 255
+  const g = parseInt(fullHex.slice(2, 4), 16) / 255
+  const b = parseInt(fullHex.slice(4, 6), 16) / 255
 
   const max = Math.max(r, g, b)
   const min = Math.min(r, g, b)

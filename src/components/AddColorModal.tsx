@@ -25,19 +25,34 @@ interface AddColorModalProps {
 
 const hexToRgb = (hex: string): RGB | null => {
   const h = hex.replace('#', '')
-  if (!/^[0-9A-F]{6}$/i.test(h)) return null
+  if (!/^[0-9A-F]{3}$/i.test(h) && !/^[0-9A-F]{6}$/i.test(h)) return null
+  
+  const fullHex = h.length === 3 
+    ? h.split('').map(char => char + char).join('')
+    : h
+
   return {
-    r: parseInt(h.substring(0, 2), 16),
-    g: parseInt(h.substring(2, 4), 16),
-    b: parseInt(h.substring(4, 6), 16)
+    r: parseInt(fullHex.substring(0, 2), 16),
+    g: parseInt(fullHex.substring(2, 4), 16),
+    b: parseInt(fullHex.substring(4, 6), 16)
   }
 }
 
 const rgbToHex = (r: number, g: number, b: number): string => {
-  return '#' + [r, g, b].map(x => {
+  const hex = [r, g, b].map(x => {
     const hex = x.toString(16)
     return hex.length === 1 ? '0' + hex : hex
   }).join('')
+  
+  if (
+    hex[0] === hex[1] &&
+    hex[2] === hex[3] &&
+    hex[4] === hex[5]
+  ) {
+    return `#${hex[0]}${hex[2]}${hex[4]}`
+  }
+  
+  return `#${hex}`
 }
 
 const rgbToHsl = (r: number, g: number, b: number): HSL => {
@@ -211,11 +226,14 @@ export const AddColorModal: FC<AddColorModalProps> = ({ isOpen, onClose, onAdd, 
     value = value.slice(0, 6)
     const newHex = '#' + value
     setHex(newHex)
-    if (value.length === 6) {
-      const newRgb = hexToRgb(newHex)
-      if (newRgb) {
-        setRgb(newRgb)
-        setHsl(rgbToHsl(newRgb.r, newRgb.g, newRgb.b))
+    
+    if (value.length === 3 || value.length === 6) {
+      if (/^[0-9A-F]{3}$/i.test(value) || /^[0-9A-F]{6}$/i.test(value)) {
+        const newRgb = hexToRgb(newHex)
+        if (newRgb) {
+          setRgb(newRgb)
+          setHsl(rgbToHsl(newRgb.r, newRgb.g, newRgb.b))
+        }
       }
     }
   }
