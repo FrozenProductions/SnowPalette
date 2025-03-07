@@ -41,7 +41,6 @@ const FolderView: FC<FolderViewProps> = ({
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; folder: FolderType } | null>(null)
   const [editingFolderId, setEditingFolderId] = useState<string | null>(null)
   const [isCategoryFilterOpen, setIsCategoryFilterOpen] = useState(false)
-  const [isFolderListVisible, setIsFolderListVisible] = useState(true)
   const [isReordering, setIsReordering] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
@@ -59,15 +58,6 @@ const FolderView: FC<FolderViewProps> = ({
   useEffect(() => {
     setSelectedColors([])
   }, [paletteId])
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsFolderListVisible(window.innerWidth > 640)
-    }
-    handleResize()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -118,9 +108,17 @@ const FolderView: FC<FolderViewProps> = ({
   const filteredColors = filterColorsByFolder(colors, selectedFolderId)
   const finalFilteredColors = filterColorsByCategory(filteredColors, categoryFilter)
 
-  const handleReorder = (newOrder: ColorItem[]) => {
+  const handleReorder = (newOrder: ColorItem[]): void => {
+    setIsReordering(true)
     const updatedColors = reorderColors(colors, newOrder)
     onUpdateColors(updatedColors)
+    setTimeout(() => setIsReordering(false), 200)
+  }
+
+  const handleFolderReorder = (newOrder: FolderType[]): void => {
+    setIsReordering(true)
+    onReorderFolders(newOrder)
+    setTimeout(() => setIsReordering(false), 200)
   }
 
   const handleRenameColor = (colorId: string, newName: string) => {
@@ -128,15 +126,6 @@ const FolderView: FC<FolderViewProps> = ({
       color.id === colorId ? { ...color, name: newName } : color
     )
     onUpdateColors(newColors)
-  }
-
-  const handleDragStart = () => {
-    setIsReordering(true)
-    setSelectedColors([])
-  }
-
-  const handleDragEnd = () => {
-    setIsReordering(false)
   }
 
   const handleFolderDrop = (folderId: string | null, e: React.DragEvent) => {
@@ -202,7 +191,6 @@ const FolderView: FC<FolderViewProps> = ({
       setSelectedFolders([])
       if (editingFolderId !== folderId) {
         onFolderSelect(folderId)
-        setIsFolderListVisible(window.innerWidth > 640)
       }
     }
   }
@@ -250,142 +238,135 @@ const FolderView: FC<FolderViewProps> = ({
         isVisible={showToast}
         onHide={() => setShowToast(false)}
       />
-      <button
-        onClick={() => setIsFolderListVisible(prev => !prev)}
-        className="sm:hidden w-full flex items-center justify-between px-3 py-2 bg-dark-800/50 rounded-xl border border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
-      >
-        <span className="text-sm font-medium">Folders</span>
-        <Folder size={16} />
-      </button>
+      <div className="w-56 flex flex-col bg-dark-800/50 rounded-xl border border-dark-700 p-3 overflow-hidden">
+        <h4 className="text-sm font-medium text-gray-300 mb-2 flex-shrink-0">Folders</h4>
+        <div className="overflow-y-auto flex-1 min-h-0">
+          <div className="space-y-1">
+            <motion.button
+              onClick={() => {
+                if (!isReordering) {
+                  onFolderSelect(null)
+                  setSelectedFolders([])
+                }
+              }}
+              onDragOver={(e) => {
+                e.preventDefault()
+                e.currentTarget.classList.add("border-primary-400")
+              }}
+              onDragLeave={(e) => {
+                e.currentTarget.classList.remove("border-primary-400")
+              }}
+              onDrop={(e: React.DragEvent) => handleFolderDrop(null, e)}
+              className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
+                selectedFolderId === null
+                  ? "bg-primary/10 border-primary/20 text-primary-300"
+                  : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
+              }`}
+              style={{ transform: 'none' }}
+              animate={{ scale: 1 }}
+            >
+              <Folder size={14} className="shrink-0" />
+              <span className="text-sm">Unorganized</span>
+              <span className="ml-auto text-xs text-gray-400 shrink-0">
+                {colors.filter(c => c.folderId === null).length}
+              </span>
+            </motion.button>
 
-      <AnimatePresence>
-        {isFolderListVisible && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="sm:w-56 flex flex-col bg-dark-800/50 rounded-xl border border-dark-700 p-3 overflow-hidden"
-          >
-            <h4 className="text-sm font-medium text-gray-300 mb-2 flex-shrink-0">Folders</h4>
-            <div className="overflow-y-auto flex-1 min-h-0">
-              <div className="space-y-1">
-                <motion.button
-                  onClick={() => {
-                    onFolderSelect(null)
-                    setSelectedFolders([])
-                    setIsFolderListVisible(window.innerWidth > 640)
+            <Reorder.Group 
+              axis="y" 
+              values={folders} 
+              onReorder={handleFolderReorder}
+              className="space-y-1"
+            >
+              {folders.map((folder) => (
+                <Reorder.Item
+                  key={folder.id}
+                  value={folder}
+                  className="touch-none"
+                  dragListener={!selectedFolders.length}
+                  dragControls={dragControls}
+                  layout
+                  whileDrag={{ 
+                    scale: 1.02,
+                    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+                    zIndex: 1 
                   }}
-                  onDragOver={(e) => {
-                    e.preventDefault()
-                    e.currentTarget.classList.add("border-primary-400")
+                  transition={{
+                    layout: { duration: 0.15, ease: "easeInOut" },
+                    default: { duration: 0.15, ease: "easeInOut" }
                   }}
-                  onDragLeave={(e) => {
-                    e.currentTarget.classList.remove("border-primary-400")
+                  onDragStart={() => setIsReordering(true)}
+                  onDragEnd={() => {
+                    setTimeout(() => setIsReordering(false), 200)
                   }}
-                  onDrop={(e: React.DragEvent) => handleFolderDrop(null, e)}
-                  className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
-                    selectedFolderId === null
-                      ? "bg-primary/10 border-primary/20 text-primary-300"
-                      : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
-                  }`}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ duration: 0.1, ease: "easeOut" }}
                 >
-                  <Folder size={14} className="shrink-0" />
-                  <span className="text-sm">Unorganized</span>
-                  <span className="ml-auto text-xs text-gray-400 shrink-0">
-                    {colors.filter(c => c.folderId === null).length}
-                  </span>
-                </motion.button>
-
-                <Reorder.Group 
-                  axis="y" 
-                  values={folders} 
-                  onReorder={onReorderFolders}
-                  className="space-y-1"
-                >
-                  {folders.map((folder) => (
-                    <Reorder.Item
-                      key={folder.id}
-                      value={folder}
-                      className="touch-none"
-                      dragListener={!selectedFolders.length}
-                      dragControls={dragControls}
-                    >
-                      <motion.div
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ duration: 0.1, ease: "easeOut" }}
-                      >
-                        <div
-                          draggable={selectedFolders.length > 0}
-                          onDragStart={(e: React.DragEvent) => handleFolderDragStart(e, folder.id)}
-                          onDragEnd={handleFolderDragEnd}
-                          onClick={(e: React.MouseEvent) => handleFolderClick(folder.id, e)}
-                          onContextMenu={(e: React.MouseEvent) => {
-                            e.preventDefault()
-                            setContextMenu({ x: e.clientX, y: e.clientY, folder })
+                  <div
+                    draggable={selectedFolders.length > 0}
+                    onDragStart={(e: React.DragEvent) => handleFolderDragStart(e, folder.id)}
+                    onDragEnd={handleFolderDragEnd}
+                    onClick={(e: React.MouseEvent) => !isReordering && handleFolderClick(folder.id, e)}
+                    onContextMenu={(e: React.MouseEvent) => {
+                      e.preventDefault()
+                      setContextMenu({ x: e.clientX, y: e.clientY, folder })
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault()
+                      e.currentTarget.classList.add("border-primary-400", "bg-primary/5")
+                    }}
+                    onDragLeave={(e) => {
+                      e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
+                      handleFolderDrop(folder.id, e)
+                    }}
+                    className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
+                      selectedFolders.includes(folder.id)
+                        ? "bg-primary/20 border-primary/30 text-primary-300 cursor-grab"
+                        : selectedFolderId === folder.id
+                          ? "bg-primary/10 border-primary/20 text-primary-300 cursor-grab"
+                          : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50 cursor-grab"
+                    }`}
+                    style={{ transform: 'none' }}
+                  >
+                    <Folder size={14} className="shrink-0" />
+                    <div className="flex-1 flex items-center gap-2 truncate">
+                      {editingFolderId === folder.id ? (
+                        <input
+                          type="text"
+                          defaultValue={folder.name}
+                          autoFocus
+                          onBlur={(e) => {
+                            onUpdateFolderName(folder.id, e.target.value)
+                            setEditingFolderId(null)
                           }}
-                          onDragOver={(e) => {
-                            e.preventDefault()
-                            e.currentTarget.classList.add("border-primary-400", "bg-primary/5")
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              onUpdateFolderName(folder.id, e.currentTarget.value)
+                              setEditingFolderId(null)
+                            }
+                            if (e.key === "Escape") {
+                              setEditingFolderId(null)
+                            }
                           }}
-                          onDragLeave={(e) => {
-                            e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault()
-                            e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
-                            handleFolderDrop(folder.id, e)
-                          }}
-                          className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
-                            selectedFolders.includes(folder.id)
-                              ? "bg-primary/20 border-primary/30 text-primary-300 cursor-grab"
-                              : selectedFolderId === folder.id
-                                ? "bg-primary/10 border-primary/20 text-primary-300 cursor-grab"
-                                : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50 cursor-grab"
-                          }`}
-                        >
-                          <Folder size={14} className="shrink-0" />
-                          <div className="flex-1 flex items-center gap-2 truncate">
-                            {editingFolderId === folder.id ? (
-                              <input
-                                type="text"
-                                defaultValue={folder.name}
-                                autoFocus
-                                onBlur={(e) => {
-                                  onUpdateFolderName(folder.id, e.target.value)
-                                  setEditingFolderId(null)
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    onUpdateFolderName(folder.id, e.currentTarget.value)
-                                    setEditingFolderId(null)
-                                  }
-                                  if (e.key === "Escape") {
-                                    setEditingFolderId(null)
-                                  }
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="flex-1 bg-transparent outline-none text-sm"
-                              />
-                            ) : (
-                              <span className="text-sm truncate">{folder.name}</span>
-                            )}
-                          </div>
-                          <span className="text-xs text-gray-400 shrink-0">
-                            {colors.filter(c => c.folderId === folder.id).length}
-                          </span>
-                        </div>
-                      </motion.div>
-                    </Reorder.Item>
-                  ))}
-                </Reorder.Group>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-1 bg-transparent outline-none text-sm"
+                        />
+                      ) : (
+                        <span className="text-sm truncate">{folder.name}</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-400 shrink-0">
+                      {colors.filter(c => c.folderId === folder.id).length}
+                    </span>
+                  </div>
+                </Reorder.Item>
+              ))}
+            </Reorder.Group>
+          </div>
+        </div>
+      </div>
 
       <div className="flex-1 flex flex-col bg-dark-800/50 rounded-xl border border-dark-700 p-3 min-h-0 relative">
         <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-3">
@@ -488,23 +469,18 @@ const FolderView: FC<FolderViewProps> = ({
             className="space-y-2"
           >
             {finalFilteredColors.map((color) => (
-              <Reorder.Item
+              <ColorCard
                 key={color.id}
-                value={color}
-                className="touch-none"
-              >
-                <ColorCard
-                  color={color}
-                  onDelete={() => onDeleteColor(color.id)}
-                  onRename={(newName) => handleRenameColor(color.id, newName)}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  isReordering={isReordering}
-                  isSelected={selectedColors.includes(color.id)}
-                  onSelect={() => handleColorSelect(color.id)}
-                  selectedColors={selectedColors}
-                />
-              </Reorder.Item>
+                color={color}
+                onDelete={() => onDeleteColor(color.id)}
+                onRename={(newName) => handleRenameColor(color.id, newName)}
+                onDragStart={() => setIsReordering(true)}
+                onDragEnd={() => setTimeout(() => setIsReordering(false), 200)}
+                isReordering={isReordering}
+                isSelected={selectedColors.includes(color.id)}
+                onSelect={() => handleColorSelect(color.id)}
+                selectedColors={selectedColors}
+              />
             ))}
           </Reorder.Group>
         </div>

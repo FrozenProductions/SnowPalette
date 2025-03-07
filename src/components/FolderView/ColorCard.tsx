@@ -1,6 +1,6 @@
-import { FC, useState } from 'react'
+import { FC, useState, useRef, useEffect } from 'react'
 import { X, Pencil, GripVertical, Tag } from 'lucide-react'
-import { motion, AnimatePresence, Reorder, useDragControls } from 'framer-motion'
+import { Reorder, useDragControls } from 'framer-motion'
 import { ColorCardProps } from '../../types/colors'
 
 const ColorCard: FC<ColorCardProps> = ({
@@ -18,16 +18,24 @@ const ColorCard: FC<ColorCardProps> = ({
   const [colorName, setColorName] = useState(color.name)
   const [isHovered, setIsHovered] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
   const dragControls = useDragControls()
+  
+  useEffect(() => {
+    if (!isReordering && cardRef.current) {
+      cardRef.current.style.transform = 'none'
+      cardRef.current.style.transition = 'none'
+    }
+  }, [isReordering])
 
-  const handleRename = () => {
+  const handleRename = (): void => {
     if (colorName.trim() !== '') {
       onRename(colorName.trim())
       setIsRenamingColor(false)
     }
   }
 
-  const handleCopy = async () => {
+  const handleCopy = async (): Promise<void> => {
     try {
       await navigator.clipboard.writeText(color.value)
       const event = new CustomEvent('showToast', {
@@ -44,36 +52,44 @@ const ColorCard: FC<ColorCardProps> = ({
       value={color}
       dragListener={false}
       dragControls={dragControls}
-      className="overflow-hidden"
+      className="touch-none overflow-hidden"
       whileDrag={{ 
         scale: 1.02,
         boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
         zIndex: 1 
       }}
+      layout
       transition={{
-        duration: 0.15,
-        ease: "easeInOut"
+        layout: { duration: 0.15, ease: "easeInOut" },
+        default: { duration: 0.15, ease: "easeInOut" }
       }}
-      onDragStart={() => setIsDragging(true)}
+      onDragStart={() => {
+        setIsDragging(true)
+        onDragStart()
+      }}
       onDragEnd={() => {
-        setIsDragging(false)
+        setTimeout(() => setIsDragging(false), 100)
         onDragEnd()
+        
+        if (cardRef.current) {
+          cardRef.current.style.transform = 'none'
+        }
       }}
     >
-      <motion.div 
+      <div 
+        ref={cardRef}
         className={`flex items-center gap-2 p-2 bg-dark-800/50 rounded-xl border transition-colors ${
           isSelected 
             ? "border-primary-400 bg-primary/5" 
             : "border-dark-700 hover:border-dark-600"
         }`}
-        onHoverStart={() => !isReordering && setIsHovered(true)}
-        onHoverEnd={() => setIsHovered(false)}
+        onMouseEnter={() => !isReordering && setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onClick={() => !isReordering && !isDragging && onSelect()}
-        whileTap={{ scale: 0.98 }}
-        transition={{ duration: 0.1, ease: "easeOut" }}
+        style={{ transform: 'none' }}
       >
         <div className="flex items-center gap-2 flex-1">
-          <motion.div 
+          <div 
             className="text-gray-500 cursor-grab active:cursor-grabbing select-none h-full flex items-center ml-1"
             onPointerDown={(e) => {
               e.stopPropagation()
@@ -87,7 +103,7 @@ const ColorCard: FC<ColorCardProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <GripVertical size={16} strokeWidth={1.75} />
-          </motion.div>
+          </div>
           <div 
             className="w-8 h-8 rounded-lg ring-1 ring-dark-800 relative cursor-move"
             style={{ backgroundColor: color.value }}
@@ -121,12 +137,9 @@ const ColorCard: FC<ColorCardProps> = ({
               onDragEnd()
             }}
           >
-            <motion.div 
-              className="absolute inset-0 rounded-lg bg-gradient-to-b from-black/0 to-black/20"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: isHovered && !isReordering ? 1 : 0 }}
-              transition={{ duration: 0.1 }}
-            />
+            {isHovered && !isReordering && (
+              <div className="absolute inset-0 rounded-lg bg-gradient-to-b from-black/0 to-black/20" />
+            )}
           </div>
           <div className="flex-1 min-w-0 select-none">
             <div className="text-sm font-medium text-gray-300 truncate">
@@ -154,13 +167,8 @@ const ColorCard: FC<ColorCardProps> = ({
                 <Tag size={12} />
                 <span className="capitalize">{color.category}</span>
               </div>
-              <AnimatePresence>
-                <motion.div 
-                  className="flex items-center gap-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: isHovered && !isReordering ? 1 : 0 }}
-                  transition={{ duration: 0.15 }}
-                >
+              {isHovered && !isReordering && (
+                <div className="flex items-center gap-2">
                   <div className="w-px h-3 bg-dark-600" />
                   <div 
                     onClick={(e) => {
@@ -171,40 +179,35 @@ const ColorCard: FC<ColorCardProps> = ({
                   >
                     {color.value}
                   </div>
-                </motion.div>
-              </AnimatePresence>
+                </div>
+              )}
             </div>
           </div>
         </div>
-        <motion.div 
-          className="flex items-center gap-1 shrink-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isHovered && !isReordering ? 1 : 0 }}
-          transition={{ duration: 0.15 }}
-        >
-          <motion.button
-            whileHover={{ scale: 1.1, backgroundColor: "rgba(59, 130, 246, 0.2)" }}
-            onClick={(e) => {
-              e.stopPropagation()
-              setIsRenamingColor(true)
-              setColorName(color.name)
-            }}
-            className="w-6 h-6 rounded-lg hover:text-primary-300 text-gray-400 flex items-center justify-center"
-          >
-            <Pencil size={14} />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.1, backgroundColor: "rgba(239, 68, 68, 0.2)" }}
-            onClick={(e) => {
-              e.stopPropagation()
-              onDelete()
-            }}
-            className="w-6 h-6 rounded-lg hover:text-red-400 text-gray-400 flex items-center justify-center"
-          >
-            <X size={14} />
-          </motion.button>
-        </motion.div>
-      </motion.div>
+        {isHovered && !isReordering && (
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsRenamingColor(true)
+                setColorName(color.name)
+              }}
+              className="w-6 h-6 rounded-lg hover:text-primary-300 hover:bg-primary-400/20 text-gray-400 flex items-center justify-center transition-colors"
+            >
+              <Pencil size={14} />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete()
+              }}
+              className="w-6 h-6 rounded-lg hover:text-red-400 hover:bg-red-400/20 text-gray-400 flex items-center justify-center transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+      </div>
     </Reorder.Item>
   )
 }
