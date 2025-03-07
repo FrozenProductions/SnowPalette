@@ -17,6 +17,7 @@ const ColorCard: FC<ColorCardProps> = ({
   const [isRenamingColor, setIsRenamingColor] = useState(false)
   const [colorName, setColorName] = useState(color.name)
   const [isHovered, setIsHovered] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const dragControls = useDragControls()
 
   const handleRename = () => {
@@ -53,6 +54,11 @@ const ColorCard: FC<ColorCardProps> = ({
         duration: 0.15,
         ease: "easeInOut"
       }}
+      onDragStart={() => setIsDragging(true)}
+      onDragEnd={() => {
+        setIsDragging(false)
+        onDragEnd()
+      }}
     >
       <motion.div 
         className={`flex items-center gap-2 p-2 bg-dark-800/50 rounded-xl border transition-colors ${
@@ -62,18 +68,23 @@ const ColorCard: FC<ColorCardProps> = ({
         }`}
         onHoverStart={() => !isReordering && setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
-        onClick={() => !isReordering && onSelect()}
+        onClick={() => !isReordering && !isDragging && onSelect()}
       >
         <div className="flex items-center gap-2 flex-1">
           <motion.div 
-            className="text-gray-500 cursor-grab active:cursor-grabbing select-none"
-            whileHover={{ color: 'rgba(156, 163, 175, 1)' }}
+            className="text-gray-500 cursor-grab active:cursor-grabbing select-none h-full flex items-center ml-1"
             onPointerDown={(e) => {
               e.stopPropagation()
+              setIsHovered(false)
+              setIsDragging(true)
               dragControls.start(e)
             }}
+            onPointerUp={() => {
+              setTimeout(() => setIsDragging(false), 0)
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <GripVertical size={14} />
+            <GripVertical size={16} strokeWidth={1.75} />
           </motion.div>
           <div 
             className="w-8 h-8 rounded-lg ring-1 ring-dark-800 relative cursor-move"
@@ -81,6 +92,7 @@ const ColorCard: FC<ColorCardProps> = ({
             draggable
             onDragStart={(e) => {
               e.stopPropagation()
+              setIsDragging(true)
               e.dataTransfer.effectAllowed = "move"
               const colorIds = isSelected ? selectedColors : [color.id]
 
@@ -103,6 +115,7 @@ const ColorCard: FC<ColorCardProps> = ({
             }}
             onDragEnd={(e) => {
               e.stopPropagation()
+              setTimeout(() => setIsDragging(false), 0)
               onDragEnd()
             }}
           >

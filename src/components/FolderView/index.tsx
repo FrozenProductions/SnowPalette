@@ -132,6 +132,7 @@ const FolderView: FC<FolderViewProps> = ({
 
   const handleDragStart = () => {
     setIsReordering(true)
+    setSelectedColors([])
   }
 
   const handleDragEnd = () => {
