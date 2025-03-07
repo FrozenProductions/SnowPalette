@@ -270,7 +270,7 @@ const FolderView: FC<FolderViewProps> = ({
             <h4 className="text-sm font-medium text-gray-300 mb-2 flex-shrink-0">Folders</h4>
             <div className="overflow-y-auto flex-1 min-h-0">
               <div className="space-y-1">
-                <button
+                <motion.button
                   onClick={() => {
                     onFolderSelect(null)
                     setSelectedFolders([])
@@ -284,14 +284,20 @@ const FolderView: FC<FolderViewProps> = ({
                     e.currentTarget.classList.remove("border-primary-400")
                   }}
                   onDrop={(e: React.DragEvent) => handleFolderDrop(null, e)}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
+                  className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
+                    selectedFolderId === null
+                      ? "bg-primary/10 border-primary/20 text-primary-300"
+                      : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50"
+                  }`}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.1, ease: "easeOut" }}
                 >
                   <Folder size={14} className="shrink-0" />
                   <span className="text-sm">Unorganized</span>
                   <span className="ml-auto text-xs text-gray-400 shrink-0">
                     {colors.filter(c => c.folderId === null).length}
                   </span>
-                </button>
+                </motion.button>
 
                 <Reorder.Group 
                   axis="y" 
@@ -307,66 +313,71 @@ const FolderView: FC<FolderViewProps> = ({
                       dragListener={!selectedFolders.length}
                       dragControls={dragControls}
                     >
-                      <div
-                        draggable={selectedFolders.length > 0}
-                        onDragStart={(e: React.DragEvent) => handleFolderDragStart(e, folder.id)}
-                        onDragEnd={handleFolderDragEnd}
-                        onClick={(e: React.MouseEvent) => handleFolderClick(folder.id, e)}
-                        onContextMenu={(e: React.MouseEvent) => {
-                          e.preventDefault()
-                          setContextMenu({ x: e.clientX, y: e.clientY, folder })
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault()
-                          e.currentTarget.classList.add("border-primary-400", "bg-primary/5")
-                        }}
-                        onDragLeave={(e) => {
-                          e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault()
-                          e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
-                          handleFolderDrop(folder.id, e)
-                        }}
-                        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
-                          selectedFolders.includes(folder.id)
-                            ? "bg-primary/20 border-primary/30 text-primary-300 cursor-grab"
-                            : selectedFolderId === folder.id
-                              ? "bg-primary/10 border-primary/20 text-primary-300 cursor-grab"
-                              : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50 cursor-grab"
-                        }`}
+                      <motion.div
+                        whileTap={{ scale: 0.98 }}
+                        transition={{ duration: 0.1, ease: "easeOut" }}
                       >
-                        <Folder size={14} className="shrink-0" />
-                        <div className="flex-1 flex items-center gap-2 truncate">
-                          {editingFolderId === folder.id ? (
-                            <input
-                              type="text"
-                              defaultValue={folder.name}
-                              autoFocus
-                              onBlur={(e) => {
-                                onUpdateFolderName(folder.id, e.target.value)
-                                setEditingFolderId(null)
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  onUpdateFolderName(folder.id, e.currentTarget.value)
+                        <div
+                          draggable={selectedFolders.length > 0}
+                          onDragStart={(e: React.DragEvent) => handleFolderDragStart(e, folder.id)}
+                          onDragEnd={handleFolderDragEnd}
+                          onClick={(e: React.MouseEvent) => handleFolderClick(folder.id, e)}
+                          onContextMenu={(e: React.MouseEvent) => {
+                            e.preventDefault()
+                            setContextMenu({ x: e.clientX, y: e.clientY, folder })
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault()
+                            e.currentTarget.classList.add("border-primary-400", "bg-primary/5")
+                          }}
+                          onDragLeave={(e) => {
+                            e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault()
+                            e.currentTarget.classList.remove("border-primary-400", "bg-primary/5")
+                            handleFolderDrop(folder.id, e)
+                          }}
+                          className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-colors select-none ${
+                            selectedFolders.includes(folder.id)
+                              ? "bg-primary/20 border-primary/30 text-primary-300 cursor-grab"
+                              : selectedFolderId === folder.id
+                                ? "bg-primary/10 border-primary/20 text-primary-300 cursor-grab"
+                                : "bg-dark-800/50 border-dark-700 text-gray-400 hover:text-white hover:border-primary/50 cursor-grab"
+                          }`}
+                        >
+                          <Folder size={14} className="shrink-0" />
+                          <div className="flex-1 flex items-center gap-2 truncate">
+                            {editingFolderId === folder.id ? (
+                              <input
+                                type="text"
+                                defaultValue={folder.name}
+                                autoFocus
+                                onBlur={(e) => {
+                                  onUpdateFolderName(folder.id, e.target.value)
                                   setEditingFolderId(null)
-                                }
-                                if (e.key === "Escape") {
-                                  setEditingFolderId(null)
-                                }
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="flex-1 bg-transparent outline-none text-sm"
-                            />
-                          ) : (
-                            <span className="text-sm truncate">{folder.name}</span>
-                          )}
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    onUpdateFolderName(folder.id, e.currentTarget.value)
+                                    setEditingFolderId(null)
+                                  }
+                                  if (e.key === "Escape") {
+                                    setEditingFolderId(null)
+                                  }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex-1 bg-transparent outline-none text-sm"
+                              />
+                            ) : (
+                              <span className="text-sm truncate">{folder.name}</span>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-400 shrink-0">
+                            {colors.filter(c => c.folderId === folder.id).length}
+                          </span>
                         </div>
-                        <span className="text-xs text-gray-400 shrink-0">
-                          {colors.filter(c => c.folderId === folder.id).length}
-                        </span>
-                      </div>
+                      </motion.div>
                     </Reorder.Item>
                   ))}
                 </Reorder.Group>

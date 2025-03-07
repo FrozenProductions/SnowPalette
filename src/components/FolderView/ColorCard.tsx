@@ -69,6 +69,8 @@ const ColorCard: FC<ColorCardProps> = ({
         onHoverStart={() => !isReordering && setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
         onClick={() => !isReordering && !isDragging && onSelect()}
+        whileTap={{ scale: 0.98 }}
+        transition={{ duration: 0.1, ease: "easeOut" }}
       >
         <div className="flex items-center gap-2 flex-1">
           <motion.div 
